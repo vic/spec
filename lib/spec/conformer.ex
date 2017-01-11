@@ -2,7 +2,7 @@ defmodule Spec.Conformer do
   alias Spec.Mismatch
 
   def pipe(value, conformer) do
-    Spec.Conform.conform(conformer, value)
+    Spec.Protocol.conform(conformer, value)
   end
 
   def quoted(quoted) do
@@ -144,17 +144,17 @@ defmodule Spec.Conformer do
     quoted_fn(expr, x)
   end
 
-  defp quoted_fn(call = {_, _, _}, quoted) do
+  defp quoted_fn(call = {_, _, _}, quoted, unform \\ quote(do: fn x -> x end.())) do
     escaped = Macro.escape(quoted)
     quote do
       fn
-        :quoted -> unquote(escaped)
+        :quoted_expr -> unquote(escaped)
         {:conform, value} ->
           value
           |> unquote(call)
           |> unquote(__MODULE__).result(value, unquote(escaped))
         {:unform, value} ->
-          value
+          value |> unquote(unform)
       end
     end
   end
@@ -167,7 +167,7 @@ defmodule Spec.Conformer do
       {x, _, y} when x in [:and, :or] ->
         quote(do: Spec.Enum.has_key?({unquote(x), unquote_splicing(y)})) |> quoted()
       _ ->
-        raise "only atom keys and `and`/`or` operations are supported"
+        raise "only atoms and `and`/`or` operations are supported inside keys()"
     end)
   end
 
