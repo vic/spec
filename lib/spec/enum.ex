@@ -76,7 +76,7 @@ defmodule Spec.Enum do
 
     kvc
     |> Enum.find_value(fn
-      {kc, vc} when is_function(kc) ->
+      {kc, vc} ->
         case Conformer.pipe(k, kc) do
           {:error, _failure} -> nil
           {:ok, ck} -> conform_value.(ck, vc)

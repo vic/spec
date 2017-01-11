@@ -12,16 +12,26 @@ defprotocol Spec.Protocol do
   @spec unform(spec :: t, value :: any) :: result
   def unform(spec, value)
 
-  @spec exercise(spec :: t, options :: keyword()) :: result
-  def exercise(spec, options)
-
   @spec quoted(spec :: t) :: any
   def quoted(spec)
 end
 
-defimpl Spec.Protocol, for: Function do
-  def quoted(fun), do: fun.(:quoted)
-  def conform(fun, value), do: fun.({:conform, value})
-  def unform(fun, value), do: fun.({:unform, value})
-  def exercise(fun, options), do: fun.({:excercise, options})
+defmodule Spec.Function do
+  defstruct [:quoted, :conformer, :unformer]
+end
+
+defimpl Spec.Protocol, for: Spec.Function do
+  def quoted(%{quoted: quoted}), do: quoted
+
+  def conform(%{conformer: conformer, quoted: quoted}, value) do
+    value
+    |> conformer.()
+    |> Spec.Conformer.result(value, quoted)
+  end
+
+  def unform(%{unformer: unformer, quoted: quoted}, value) do
+    value
+    |> unformer.()
+    |> Spec.Conformer.result(value, quoted)
+  end
 end

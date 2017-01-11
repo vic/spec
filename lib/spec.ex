@@ -7,4 +7,5 @@ defmodule Spec do
       import Spec.Seq
     end
   end
+
 end

@@ -147,15 +147,11 @@ defmodule Spec.Conformer do
   defp quoted_fn(call = {_, _, _}, quoted, unform \\ quote(do: fn x -> x end.())) do
     escaped = Macro.escape(quoted)
     quote do
-      fn
-        :quoted_expr -> unquote(escaped)
-        {:conform, value} ->
-          value
-          |> unquote(call)
-          |> unquote(__MODULE__).result(value, unquote(escaped))
-        {:unform, value} ->
-          value |> unquote(unform)
-      end
+      %Spec.Function{
+        quoted: unquote(escaped),
+        conformer: fn value -> value |> unquote(call) end,
+        unformer: fn value -> value |> unquote(unform) end
+      }
     end
   end
 
