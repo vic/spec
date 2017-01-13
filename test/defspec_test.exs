@@ -24,5 +24,9 @@ defmodule Spec.DefineTest do
     test "called with bang returns conformed value only" do
       assert %{iq: 201} = nerd!(%{iq: 201})
     end
+
+    test "called with bang raises on malformed value" do
+      assert_raise Spec.Mismatch, fn -> nerd!(%{iq: 2}) end
+    end
   end
 end

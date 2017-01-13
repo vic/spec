@@ -1,5 +1,5 @@
 defmodule Spec.Mismatch do
-  defstruct [:subject, :reason, :expr, :at, :in]
+  defexception [:subject, :reason, :expr, :at, :in]
 
   @type t :: %__MODULE__{}
 
@@ -12,6 +12,10 @@ defmodule Spec.Mismatch do
     parent = struct(__MODULE__, Keyword.drop(opts, [:at]))
     mismatch = %__MODULE__{inner | at: opts[:at], in: parent}
     {:error, mismatch}
+  end
+
+  def message(mismatch = %__MODULE__{}) do
+    to_string(mismatch)
   end
 
 end
@@ -104,7 +108,7 @@ defimpl String.Chars, for: Spec.Mismatch do
   end
 
   def to_string(mismatch = %Spec.Mismatch{}) do
-    "Spec.Mismatch: " <> format(mismatch)
+    format(mismatch)
   end
 end
 

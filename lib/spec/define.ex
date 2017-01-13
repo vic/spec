@@ -20,8 +20,11 @@ defmodule Spec.Define do
       end
 
       def unquote(:"#{name}!")(value) do
-        {:ok, conformed} = unquote(name)(value)
-        conformed
+        unquote(name)(value)
+        |> case do
+          {:ok, conformed} -> conformed
+          {:error, mismatch = %Spec.Mismatch{}} -> raise mismatch
+        end
       end
     end
   end
