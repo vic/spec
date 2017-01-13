@@ -14,6 +14,15 @@ defmodule Spec.Define do
       def unquote(name)(value) do
         Spec.Protocol.conform(unquote(name)(), value)
       end
+
+      def unquote(:"#{name}?")(value) do
+        unquote(name)(value) |> Spec.Conform.ok?
+      end
+
+      def unquote(:"#{name}!")(value) do
+        {:ok, conformed} = unquote(name)(value)
+        conformed
+      end
     end
   end
 
