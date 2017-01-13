@@ -361,7 +361,8 @@ iex> conform!(many(is_function(), fail_fast: false), [1, 2])
 There are some things missing
 
 - [x] Have lots of fun
-- [ ] Improve readme
+- [ ] Improve readme, talk about all other Spec functions like valid? and friends.
+- [ ] Talk about Unconforming data (the reverse of conforming)
 - [ ] Add more [tests]
 - [ ] Implement `gen` and `exercise`.
       Search on hex.pm for current packages that generate data and we can use
