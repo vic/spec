@@ -1,4 +1,4 @@
-defmodule Spec.SeqTest do
+defmodule Spec.RegexTest do
   use ExUnit.Case
   doctest Spec.Enum
 

@@ -1,4 +1,4 @@
-defmodule Spec.Seq do
+defmodule Spec.Regex do
 
   @moduledoc """
   Provides regex combinators for conformers.

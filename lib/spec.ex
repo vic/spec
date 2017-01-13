@@ -4,7 +4,7 @@ defmodule Spec do
     quote do
       import Spec
       import Spec.Conform
-      import Spec.Seq
+      import Spec.Regex
       import Spec.Define
     end
   end
