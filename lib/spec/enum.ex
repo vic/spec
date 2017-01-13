@@ -2,7 +2,7 @@ defmodule Spec.Enum do
   @moduledoc false
 
   alias Spec.Mismatch
-  alias Spec.Conformer
+  alias Spec.Quoted
 
   def tuple(tuple, _) when not is_tuple(tuple) do
     Mismatch.error(
@@ -41,7 +41,7 @@ defmodule Spec.Enum do
   end
 
   defp item_conform({{item, conformer}, index}, nil) do
-    case Conformer.pipe(item, conformer) do
+    case Quoted.pipe(item, conformer) do
       {:ok, conformed} -> {[conformed], nil}
       {:error, failure} -> {:halt, {index, failure}}
     end
@@ -60,7 +60,7 @@ defmodule Spec.Enum do
 
   defp kw_map_reduce({k, v}, {kvc, failures}) do
     conform_value = fn ck, vc ->
-      case Conformer.pipe(v, vc) do
+      case Quoted.pipe(v, vc) do
         {:ok, cv} ->
           {:ok, {ck, cv}}
         {:error, value_mismatch} ->
@@ -77,7 +77,7 @@ defmodule Spec.Enum do
     kvc
     |> Enum.find_value(fn
       {kc, vc} ->
-        case Conformer.pipe(k, kc) do
+        case Quoted.pipe(k, kc) do
           {:error, _failure} -> nil
           {:ok, ck} -> conform_value.(ck, vc)
         end
@@ -114,7 +114,7 @@ defmodule Spec.Enum do
   defp keys_from(enum, keys) do
     Enum.flat_map_reduce(keys, _missed = [], fn
       key, missed ->
-        Conformer.pipe(enum, key)
+        Quoted.pipe(enum, key)
         |> case do
             {:ok, founds} -> {founds, missed}
             {:error, miss} -> {[], missed ++ miss}
@@ -123,9 +123,9 @@ defmodule Spec.Enum do
   end
 
   def has_key?(enum, {:and, ak, bk}) do
-    case Conformer.pipe(enum, ak) do
+    case Quoted.pipe(enum, ak) do
       {:ok, akeys} ->
-        case Conformer.pipe(enum, bk) do
+        case Quoted.pipe(enum, bk) do
           {:ok, bkeys} -> {:ok, akeys ++ bkeys}
           error -> error
         end
@@ -134,10 +134,10 @@ defmodule Spec.Enum do
   end
 
   def has_key?(enum, {:or, ak, bk}) do
-    case Conformer.pipe(enum, ak) do
+    case Quoted.pipe(enum, ak) do
       {:ok, akeys} -> {:ok, akeys}
       {:error, %{expr: amissed}} ->
-        case Conformer.pipe(enum, bk) do
+        case Quoted.pipe(enum, bk) do
           {:ok, bkeys} -> {:ok, bkeys}
           {:error, %{expr: bmissed}} ->
             Mismatch.error(subject: enum,
@@ -188,7 +188,7 @@ defmodule Spec.Enum do
           reason: "does not have max length of #{max}")
         {:halt, failure}
       {item, _}, failures ->
-        case Conformer.pipe(item, conformer) do
+        case Quoted.pipe(item, conformer) do
           {:ok, conformed} -> {[conformed], []}
           {:error, failure} when fail_fast == true -> {:halt, failure}
           {:error, failure} -> {[], [failure | failures]}

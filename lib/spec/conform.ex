@@ -1,11 +1,11 @@
 defmodule Spec.Conform do
-  alias Spec.Conformer
+  alias Spec.Quoted
 
   @spec conform(conformer :: Spec.t, value :: any) :: Spec.result
   defmacro conform(quoted, value) do
-    conformer = Conformer.quoted(quoted)
+    conformer = Quoted.quoted(quoted)
     quote bind_quoted: [conformer: conformer, value: value] do
-      Conformer.pipe(value, conformer)
+      Quoted.pipe(value, conformer)
     end
   end
 
@@ -26,9 +26,9 @@ defmodule Spec.Conform do
   def error?(_), do: false
 
   defmacro keys(map_or_kw, opts) do
-    conformer = Conformer.keys(opts)
+    conformer = Quoted.keys(opts)
     quote bind_quoted: [conformer: conformer, map_or_kw: map_or_kw] do
-      Conformer.pipe(map_or_kw, conformer)
+      Quoted.pipe(map_or_kw, conformer)
     end
   end
 end

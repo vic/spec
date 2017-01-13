@@ -41,15 +41,15 @@ defmodule Spec.Seq do
   defp repeat_conformer(value, spec, opts) do
     opts = Map.merge(%{min: 0, max: nil, fail_fast: true}, Map.new(opts))
     opts = {:%{}, [], Enum.into(opts, [])}
-    conf = Spec.Conformer.quoted(spec)
+    conf = Spec.Quoted.quoted(spec)
     quoted_conformer(value, quote do:
       Spec.Enum.repeat(unquote(conf), unquote(opts)))
   end
 
   defp quoted_conformer(value, conf) do
-    conf = Spec.Conformer.quoted(conf)
+    conf = Spec.Quoted.quoted(conf)
     quote do
-      Spec.Conformer.pipe(unquote(value), unquote(conf))
+      Spec.Quoted.pipe(unquote(value), unquote(conf))
     end
   end
 end
