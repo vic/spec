@@ -1,11 +1,21 @@
 defmodule Spec.Quoted do
+  @doc false # internal API
+
   alias Spec.Mismatch
+
+  def conform(quoted_expr, value) do
+    conformer = conformer(quoted_expr)
+    quote bind_quoted: [conformer: conformer, value: value] do
+      Spec.Conformer.conform(conformer, value)
+    end
+  end
 
   def pipe(value, conformer) do
     Spec.Conformer.conform(conformer, value)
   end
 
-  def quoted(quoted) do
+  # Transform a quoted expression into a QuotedConformer
+  def conformer(quoted) do
     quoted_expr(quoted)
   end
 
@@ -14,68 +24,68 @@ defmodule Spec.Quoted do
   end
 
   defp quoted_expr(quoted = {:%{}, _, keyword}) do
-    keyword = for {k, v} <- keyword, do: {quoted(k), quoted(v)}
+    keyword = for {k, v} <- keyword, do: {conformer(k), conformer(v)}
     expr = quote do
       Spec.Enum.keyword(unquote(keyword), %{})
     end
-    quoted_fn(expr, quoted)
+    quoted_conformer(expr, quoted)
   end
 
   defp quoted_expr(quoted) when is_list(quoted) do
     if Keyword.keyword?(quoted) do
-      keyword = for {k, v} <- quoted, do: {quoted(k), quoted(v)}
+      keyword = for {k, v} <- quoted, do: {conformer(k), conformer(v)}
       expr = quote do
         Spec.Enum.keyword(unquote(keyword), [])
       end
-      quoted_fn(expr, quoted)
+      quoted_conformer(expr, quoted)
     else
-      args = Enum.map(quoted, &quoted/1)
+      args = Enum.map(quoted, &conformer/1)
       expr = quote do
         Spec.Enum.list(unquote(args))
       end
-      quoted_fn(expr, quoted)
+      quoted_conformer(expr, quoted)
     end
   end
 
   defp quoted_expr(quoted = {:{}, _, args}) do
-    args = Enum.map(args, &quoted/1)
+    args = Enum.map(args, &conformer/1)
     expr = quote do
       Spec.Enum.tuple(unquote(args))
     end
-    quoted_fn(expr, quoted)
+    quoted_conformer(expr, quoted)
   end
 
   defp quoted_expr(quoted = {{:., _, _}, _, _}) do
-    quoted_fn(quoted, quoted)
+    quoted_conformer(quoted, quoted)
   end
 
   defp quoted_expr(quoted = {:::, _, [{name, _, x}, arg]}) when is_atom(name) and is_atom(x) do
-    conformer = quoted({name, arg})
+    conformer = conformer({name, arg})
     expr = quote do
       fn value ->
         {unquote(name), value} |> Spec.Quoted.pipe(unquote(conformer))
       end.()
     end
-    quoted_fn(expr, quoted)
+    quoted_conformer(expr, quoted)
   end
 
   defp quoted_expr(quoted = {:fn, _, _}) do
-    quoted_fn(quote(do: unquote(quoted).()), quoted)
+    quoted_conformer(quote(do: unquote(quoted).()), quoted)
   end
 
   defp quoted_expr(quoted = {:&, _, _}) do
-    quoted_fn(quote(do: unquote(quoted).()), quoted)
+    quoted_conformer(quote(do: unquote(quoted).()), quoted)
   end
 
   defp quoted_expr(quoted = {:sigil_r, _, _}) do
     expr = quote do
       String.match?(unquote(quoted))
     end
-    quoted_fn(expr, quoted)
+    quoted_conformer(expr, quoted)
   end
 
   defp quoted_expr(quoted = {:|>, _, [a, b]}) do
-    a = quoted(a)
+    a = conformer(a)
     expr = quote do
       Spec.Quoted.pipe(unquote(a))
       |> case do
@@ -83,11 +93,11 @@ defmodule Spec.Quoted do
         other -> other
       end
     end
-    quoted_fn(expr, quoted)
+    quoted_conformer(expr, quoted)
   end
 
   defp quoted_expr(quoted = {:and, _, [a, b]}) do
-    {a, b} = {quoted(a), quoted(b)}
+    {a, b} = {conformer(a), conformer(b)}
     expr = quote do
       fn value ->
         Spec.Quoted.pipe(value, unquote(a))
@@ -101,11 +111,11 @@ defmodule Spec.Quoted do
         end
       end.()
     end
-    quoted_fn(expr, quoted)
+    quoted_conformer(expr, quoted)
   end
 
   defp quoted_expr(quoted = {:or, _, [a, b]}) do
-    {a, b} = {quoted(a), quoted(b)}
+    {a, b} = {conformer(a), conformer(b)}
     expr = quote do
       fn value ->
         Spec.Quoted.pipe(value, unquote(a))
@@ -123,12 +133,12 @@ defmodule Spec.Quoted do
         end
       end.()
     end
-    quoted_fn(expr, quoted)
+    quoted_conformer(expr, quoted)
   end
 
   defp quoted_expr(quoted = {a, _, args}) when is_atom(a) and is_list(args) do
     if String.match?(to_string(a), ~r/^\w/) do
-      quoted_fn(quoted, quoted)
+      quoted_conformer(quoted, quoted)
     else # operators
       quoted
     end
@@ -141,41 +151,17 @@ defmodule Spec.Quoted do
         v -> Mismatch.error(subject: v, reason: "does not match", expr: unquote(x))
       end
     end
-    quoted_fn(expr, x)
+    quoted_conformer(expr, x)
   end
 
-  defp quoted_fn(conformer = {_, _, _}, quoted) do
+  def quoted_conformer(conformer = {_, _, _}, quoted) do
     escaped = Macro.escape(quoted)
     quote do
       %Spec.QuotedConformer{
         quoted: unquote(escaped),
-        conformer: fn value -> value |> unquote(conformer) end,
+        conformer: fn value -> value |> unquote(conformer) end
       }
     end
-  end
-
-  defp key_quoted(quoted) do
-    quoted
-    |> Macro.postwalk(fn
-      x when is_atom(x) ->
-        quote(do: Spec.Enum.has_key?(unquote(x))) |> quoted()
-      {x, _, y} when x in [:and, :or] ->
-        quote(do: Spec.Enum.has_key?({unquote(x), unquote_splicing(y)})) |> quoted()
-      _ ->
-        raise "only atoms and `and`/`or` operations are supported inside keys()"
-    end)
-  end
-
-  def keys(opts) do
-    %{required: required,
-      optional: optional} =
-      %{required: [], optional: []}
-      |> Map.merge(Map.new(opts))
-      |> Enum.into(%{}, fn {k,v} -> {k, Enum.map(v, &key_quoted/1)} end)
-    quoted = quote do
-      Spec.Enum.keys(unquote(required), unquote(optional))
-    end
-    quoted_fn(quoted, opts)
   end
 
   def result(true, value, _quoted), do: {:ok, value}

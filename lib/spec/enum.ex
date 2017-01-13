@@ -1,5 +1,5 @@
 defmodule Spec.Enum do
-  @moduledoc false
+  @moduledoc false # internal API
 
   alias Spec.Mismatch
   alias Spec.Quoted
@@ -204,6 +204,37 @@ defmodule Spec.Enum do
             reason: {"items do not conform", Enum.reverse(failures)})
       {_, failure} -> {:error, failure}
     end
+  end
+
+  def keys_conform(map_or_kw, opts) do
+    conformer = keys_conformer(opts)
+    quote bind_quoted: [conformer: conformer, map_or_kw: map_or_kw] do
+      Spec.Conformer.conform(conformer, map_or_kw)
+    end
+  end
+
+  defp keys_conformer(opts) do
+    %{required: required,
+      optional: optional} =
+      %{required: [], optional: []}
+      |> Map.merge(Map.new(opts))
+      |> Enum.into(%{}, fn {k,v} -> {k, Enum.map(v, &key_conformer/1)} end)
+    quoted = quote do
+      Spec.Enum.keys(unquote(required), unquote(optional))
+    end
+    Spec.Quoted.quoted_conformer(quoted, opts)
+  end
+
+  defp key_conformer(quoted) do
+    quoted
+    |> Macro.postwalk(fn
+      x when is_atom(x) ->
+        quote(do: Spec.Enum.has_key?(unquote(x))) |> Spec.Quoted.conformer()
+      {x, _, y} when x in [:and, :or] ->
+        quote(do: Spec.Enum.has_key?({unquote(x), unquote_splicing(y)})) |> Spec.Quoted.conformer()
+      _ ->
+        raise "only atoms and `and`/`or` operations are supported inside keys()"
+    end)
   end
 
 end

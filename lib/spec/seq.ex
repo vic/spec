@@ -1,20 +1,20 @@
 defmodule Spec.Seq do
 
   @moduledoc """
-  Provides regex combinators for matching sequence elements.
+  Provides regex combinators for conformers.
   """
 
   @at_kernel [context: Elixir, import: Kernel]
 
-  defmacro cat(value, named_specs) do
-    tagged = for {name, spec} <- named_specs,
-      do: {:::, @at_kernel, [{name, [], nil}, spec]}
+  defmacro cat(value, named_conforms) do
+    tagged = for {name, expr} <- named_conforms,
+      do: {:::, @at_kernel, [{name, [], nil}, expr]}
     quoted_conformer(value, tagged)
   end
 
-  defmacro alt(value, named_specs) do
-    tagged = for {name, spec} <- named_specs,
-      do: {:::, @at_kernel, [{name, [], nil}, spec]}
+  defmacro alt(value, named_conforms) do
+    tagged = for {name, expr} <- named_conforms,
+      do: {:::, @at_kernel, [{name, [], nil}, expr]}
     ored = Enum.reduce(Enum.reverse(tagged), fn a, b ->
       {:or, @at_kernel, [a, b]}
     end)
@@ -22,32 +22,32 @@ defmodule Spec.Seq do
     quoted_conformer(value, quoted)
   end
 
-  defmacro one_or_more(value, spec, opts \\ []) do
-    repeat_conformer(value, spec, [min: 1, max: nil] ++ opts)
+  defmacro one_or_more(value, expr, opts \\ []) do
+    repeat_conformer(value, expr, [min: 1, max: nil] ++ opts)
   end
 
-  defmacro zero_or_more(value, spec, opts \\ []) do
-    repeat_conformer(value, spec, [min: 0, max: nil] ++ opts)
+  defmacro zero_or_more(value, expr, opts \\ []) do
+    repeat_conformer(value, expr, [min: 0, max: nil] ++ opts)
   end
 
-  defmacro zero_or_one(value, spec, opts \\ []) do
-    repeat_conformer(value, spec, [min: 0, max: 1] ++ opts)
+  defmacro zero_or_one(value, expr, opts \\ []) do
+    repeat_conformer(value, expr, [min: 0, max: 1] ++ opts)
   end
 
-  defmacro many(value, spec, opts \\ []) do
-    repeat_conformer(value, spec, opts)
+  defmacro many(value, expr, opts \\ []) do
+    repeat_conformer(value, expr, opts)
   end
 
-  defp repeat_conformer(value, spec, opts) do
+  defp repeat_conformer(value, expr, opts) do
     opts = Map.merge(%{min: 0, max: nil, fail_fast: true}, Map.new(opts))
     opts = {:%{}, [], Enum.into(opts, [])}
-    conf = Spec.Quoted.quoted(spec)
+    conf = Spec.Quoted.conformer(expr)
     quoted_conformer(value, quote do:
       Spec.Enum.repeat(unquote(conf), unquote(opts)))
   end
 
-  defp quoted_conformer(value, conf) do
-    conf = Spec.Quoted.quoted(conf)
+  defp quoted_conformer(value, expr) do
+    conf = Spec.Quoted.conformer(expr)
     quote do
       Spec.Quoted.pipe(unquote(value), unquote(conf))
     end
