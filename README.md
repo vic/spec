@@ -4,12 +4,12 @@ Spec is an Elixir data validation library inspired after [clojure.spec].
 
 Just like clojure.spec, this library does not implement a type system,
 and the data specifications created with it are not useful for checking
-at compile time. For that use Elixir builtin [@spec typespecs](typespecs)
+at compile time. For that use Elixir builtin [@spec typespecs][typespecs]
 
 Specs cannot be used for pattern matching like in function heads, 
 as validating with Spec would involve calling some Elixir runtime functions
 which are not allowed inside a pattern match. If you are looking 
-for a way to create composable patterns take a look at [Expat](expat)
+for a way to create composable patterns take a look at [Expat][expat]
 which was actually born in to the same mother than Spec.
 (that is to say I'm author of both :D)
 
