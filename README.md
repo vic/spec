@@ -374,6 +374,23 @@ defmodule LovePOEM do
 end
 ```
 
+The first advantage of using `defspec` is that you give specs a name,
+and the second is, you can use these generated functions: 
+
+```elixir
+# The generated function takes its data as first argument
+# so it's fully pipeable (and reusable in other specs)
+lovers(data) # => {:ok, ...} 
+
+# There's a predicate version of it that returns a boolean
+lovers?(data) # => true
+
+# And the bang version that returns the conformed data or raises on error
+lovers!({"loved", "ones"}) # => {"loved", "ones"}
+lovers!({22, 33}) # raises *Spec.Mismatch*
+```
+
+
 ### Difference form clojure.spec
 
 As stated initially, Spec is inspired by clojure.spec but tries only
