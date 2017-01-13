@@ -7,14 +7,14 @@ defmodule Spec.SpecTest do
   describe "conformer" do
     test "returns a function that can conform" do
       spec = conformer(&Integer.to_string/1)
-      assert {:ok, "22"} == Spec.Transformer.conform(spec, 22)
+      assert {:ok, "22"} == conform(spec, 22)
     end
 
     test "returns a function that can unform" do
       unformer = fn str -> {int, _} = Integer.parse(str); int end
       spec = conformer(&Integer.to_string/1, unformer)
-      {:ok, conformed} = Spec.Transformer.conform(spec, 22)
-      assert {:ok, 22} == Spec.Transformer.unform(spec, conformed)
+      {:ok, conformed} = conform(spec, 22)
+      assert {:ok, 22} == unform(spec, conformed)
     end
   end
 

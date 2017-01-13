@@ -24,3 +24,8 @@ defprotocol Spec.Conformer do
   @spec conform(conformer :: t, value :: any) :: result
   def conform(conformer, value)
 end
+
+defimpl Spec.Conformer, for: Function do
+  def quoted(fun), do: fun.(:quoted)
+  def conform(fun, value), do: fun.({:conform, value})
+end
