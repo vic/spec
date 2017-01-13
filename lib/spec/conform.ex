@@ -1,7 +1,14 @@
 defmodule Spec.Conform do
 
+  defmacro spec(quoted) do
+    quote bind_quoted: [quoted: quoted], do: Spec.Quoted.spec(quoted)
+  end
+
   defmacro conform(quoted, value) do
-    Spec.Quoted.conform(quoted, value)
+    spec = spec(quoted)
+    quote bind_quoted: [spec: spec, value: value] do
+      Spec.Protocol.conform(spec, value)
+    end
   end
 
   defmacro valid?(spec, value) do

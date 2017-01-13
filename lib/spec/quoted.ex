@@ -3,10 +3,11 @@ defmodule Spec.Quoted do
 
   alias Spec.Mismatch
 
-  def conform(quoted_expr, value) do
-    conformer = conformer(quoted_expr)
-    quote bind_quoted: [conformer: conformer, value: value] do
-      Spec.Conformer.conform(conformer, value)
+  def spec(conformer, unformer \\ quote(do: fn x -> x end)) do
+    conformer = conformer(conformer)
+    unformer = conformer(unformer)
+    quote bind_quoted: [conformer: conformer, unformer: unformer] do
+      %Spec.Transform{conformer: conformer, unformer: unformer}
     end
   end
 
