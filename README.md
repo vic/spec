@@ -324,12 +324,12 @@ inside the collection conform to the same spec.
 These combinators work on tuples, or any other enumerable in Elixir,
 including lazy Streams.
 
-`zero_or_one`, `one_or_more`, `zero_or_more`, and `many`. 
+`zero_or_one`, `one_or_more`, and `many`. 
 
 Of these `many` is the more interesting as the former two are
 defined in terms of it.
 
-```
+```elixir
 iex> data = ["hola", 1, "mundo", 2] |> Stream.cycle
 
 # fails as soon as the first value from data does not conform
