@@ -5,10 +5,12 @@ defmodule Spec.SpecTest do
   use Spec
 
   describe "valid?" do
-    @tag :skip
     test "returns true if spec matches" do
-      nil
+      assert true == valid?(is_integer(), 22)
+    end
+
+    test "returns false on spec mismatch" do
+      assert true == valid?(is_integer(), 23)
     end
   end
-
 end
