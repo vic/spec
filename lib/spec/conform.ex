@@ -20,6 +20,5 @@ defmodule Spec.Conform do
   defmacro keys(map_or_kw, opts) do
     Spec.Enum.keys_conform(map_or_kw, opts)
   end
-
 end
 

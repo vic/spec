@@ -5,6 +5,7 @@ defmodule Spec do
     quote do
       import Spec.Conform
       import Spec.Seq
+      import Spec.Define
     end
   end
 
