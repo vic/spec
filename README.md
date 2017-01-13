@@ -356,6 +356,24 @@ iex> conform!(many(is_function(), fail_fast: false), [1, 2])
   `2` does not satisfy predicate `is_function()`
 ```
 
+### Define spec
+
+You can also define specs on a module, giving them a name
+and having a easy way to be combined.
+
+```elixir
+# Remember, POEM stands for Plain Old Elixir Module
+defmodule LovePOEM do 
+  use Spec
+  
+  defspec lovers {is_binary(), is_binary()}
+  
+  def send_love({from, to}) do
+    Spec.conform!(lovers(), {from, to})
+  end
+end
+```
+
 ### Difference form clojure.spec
 
 As stated initially, Spec is inspired by clojure.spec but tries only
