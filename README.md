@@ -356,6 +356,17 @@ iex> conform!(many(is_function(), fail_fast: false), [1, 2])
   `2` does not satisfy predicate `is_function()`
 ```
 
+### Difference form clojure.spec
+
+As stated initially, Spec is inspired by clojure.spec but tries only
+to adapt the things of it that make sense in Elixir land.
+
+For example, there are no atom namespaces in Elixir.
+
+Also many functions from clojure.spec wont ever be implemented,
+for example `map-of`, `col-of` can be
+implemented with previously described functionality.
+
 ## TODO
 
 There are some things missing
