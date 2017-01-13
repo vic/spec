@@ -54,7 +54,7 @@ Predicates are functions that take data and return either `true` or `false`.
 For example `is_number/1` is an Elixir builtin predicate that will return 
 `true` when invoked like `is_number(42)`.
 
-Predicates can be used as specs by feeding them to `Spec.conform/2` along
+Predicates can be used as specs by feeding them to `Spec.conform(spec, data)` along
 with some data to check.
 
 ```elixir
