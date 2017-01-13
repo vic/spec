@@ -386,7 +386,7 @@ lovers(data) # => {:ok, ...}
 lovers?(data) # => true
 
 # And the bang version that returns the conformed data or raises on error
-lovers!({"loved", "ones"}) # => {"loved", "ones"}
+lovers!({"elixir", "erlang"}) # => {"elixir", "erlang"}
 lovers!({22, 33}) # raises *Spec.Mismatch*
 ```
 
