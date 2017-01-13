@@ -1,5 +1,4 @@
 defmodule Spec do
-
   @doc false
   defmacro __using__(_) do
     quote do
@@ -10,10 +9,21 @@ defmodule Spec do
     end
   end
 
-  defmacro conform(quoted, value) do
-    spec = Spec.Quoted.spec(quoted)
+  def conformer(conformer, unformer \\ fn x -> x end) do
+    fn
+      {:conform, value} -> conformer.(value) |> Spec.Quoted.result(value, nil)
+      {:unform, value} -> unformer.(value) |> Spec.Quoted.result(value, nil)
+    end
+  end
+
+  def unform(spec, value) do
+    Spec.Transformer.unform(spec, value)
+  end
+
+  defmacro conform(spec, value) do
+    spec = Spec.Quoted.spec(spec)
     quote bind_quoted: [spec: spec, value: value] do
-      Spec.Protocol.conform(spec, value)
+      Spec.Transformer.conform(spec, value)
     end
   end
 

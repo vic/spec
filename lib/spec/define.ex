@@ -12,7 +12,7 @@ defmodule Spec.Define do
       end
 
       def unquote(name)(value) do
-        Spec.Protocol.conform(unquote(name)(), value)
+        Spec.Transformer.conform(unquote(name)(), value)
       end
 
       def unquote(:"#{name}?")(value) do

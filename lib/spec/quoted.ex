@@ -16,6 +16,8 @@ defmodule Spec.Quoted do
   end
 
   # Transform a quoted expression into a QuotedConformer
+  def conformer(quoted)
+  def conformer(quoted = {x, _, nil}) when is_atom(x), do: quoted
   def conformer(quoted) do
     quoted_expr(quoted)
   end

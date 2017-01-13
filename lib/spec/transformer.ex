@@ -1,4 +1,4 @@
-defprotocol Spec.Protocol do
+defprotocol Spec.Transformer do
   @spec conform(spec :: any, value :: any) :: Spec.Conformer.result
   def conform(spec, value)
 
@@ -6,7 +6,7 @@ defprotocol Spec.Protocol do
   def unform(spec, value)
 end
 
-defimpl Spec.Protocol, for: Function do
+defimpl Spec.Transformer, for: Function do
   def conform(func, value) do
     func.({:conform, value})
   end
