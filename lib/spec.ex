@@ -11,8 +11,10 @@ defmodule Spec do
 
   def conformer(conformer, unformer \\ fn x -> x end) do
     fn
-      {:conform, value} -> conformer.(value) |> Spec.Quoted.result(value, nil)
-      {:unform, value} -> unformer.(value) |> Spec.Quoted.result(value, nil)
+      {:conform, value} ->
+        conformer.(value) |> Spec.Quoted.result(value, inspect(conformer))
+      {:unform, value} ->
+        unformer.(value) |> Spec.Quoted.result(value, inspect(unformer))
     end
   end
 
