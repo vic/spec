@@ -3,6 +3,9 @@ defmodule Spec.Enum do
 
   alias Spec.Mismatch
   alias Spec.Quoted
+  alias Spec.Conformer
+
+  @spec tuple(tuple :: Tuple.t, [Conformer.t]) :: Conformer.result
 
   def tuple(tuple, _) when not is_tuple(tuple) do
     Mismatch.error(
@@ -19,6 +22,7 @@ defmodule Spec.Enum do
     end
   end
 
+  @spec list(list :: List.t, [Conformer.t]) :: Conformer.result
   def list(list, conformers) when length(list) != length(conformers) do
     Mismatch.error(
       reason: "does not have length #{length(conformers)}",
@@ -47,6 +51,7 @@ defmodule Spec.Enum do
     end
   end
 
+  @spec keyword(Keyword.t, [Conformer.t], Collectable.t) :: Conformer.result
   def keyword(kw, kw_conforms, into) do
     kw
     |> Enum.flat_map_reduce({kw_conforms, _failures = []}, &kw_map_reduce/2)
@@ -85,6 +90,8 @@ defmodule Spec.Enum do
     |> continue.()
   end
 
+
+  @spec keys(Map.t, [Conformer.t], [Conformer.t]) :: Map.t
   def keys(map = %x{}, required, optional) do
     kv = keys(map, %{req: required, opt: optional,
                      mod: Map, into: Keyword.new})
@@ -96,6 +103,7 @@ defmodule Spec.Enum do
                 mod: Map, into: Map.new})
   end
 
+  @spec keys(Keyword.t, [Conformer.t], [Conformer.t]) :: Keyword.t
   def keys(kw, required, optional) do
     keys(kw, %{req: required, opt: optional,
                mod: Keyword, into: Keyword.new})

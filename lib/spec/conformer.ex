@@ -1,11 +1,11 @@
 defprotocol Spec.Conformer do
 
   alias Spec.Mismatch
-  @type t :: any
   @type conformed :: {:ok, conformed :: any}
   @type mismatch  :: {:error, mismatch :: Mismatch.t}
   @type result :: conformed | mismatch
-  @type quoted_expr :: any
+  @type quoted :: Macro.t
+  @type fun :: (any -> result | any)
 
   @doc """
   Return a quoted expression for this conformer.
@@ -18,7 +18,7 @@ defprotocol Spec.Conformer do
       is_integer()
 
   """
-  @spec quoted(conformer :: t) :: quoted_expr
+  @spec quoted(conformer :: t) :: quoted
   def quoted(conformer)
 
   @spec conform(conformer :: t, value :: any) :: result

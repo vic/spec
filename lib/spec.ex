@@ -9,6 +9,7 @@ defmodule Spec do
     end
   end
 
+  @type conformer(Spec.Conformer.fun, Spec.Conformer.fun) :: Spec.Transformer.t
   def conformer(conformer, unformer \\ fn x -> x end) do
     fn
       {:conform, value} ->
@@ -18,10 +19,12 @@ defmodule Spec do
     end
   end
 
+  @spec unform(Spec.Conformer.quoted, any) :: Spec.Conformer.result
   def unform(spec, value) do
     Spec.Transformer.unform(spec, value)
   end
 
+  @spec conform(Spec.Conformer.quoted, any) :: Spec.Conformer.result
   defmacro conform(spec, value) do
     spec = Spec.Quoted.spec(spec)
     quote bind_quoted: [spec: spec, value: value] do
@@ -29,6 +32,7 @@ defmodule Spec do
     end
   end
 
+  @spec conform!(Spec.Conformer.quoted, any) :: any
   defmacro conform!(spec, value) do
     quote do
       unquote(__MODULE__).conform(unquote(spec), unquote(value))
@@ -39,6 +43,7 @@ defmodule Spec do
     end
   end
 
+  @spec valid?(Spec.Conformer.quoted, any) :: boolean
   defmacro valid?(spec, value) do
     quote do
       unquote(__MODULE__).conform(unquote(spec), unquote(value))
