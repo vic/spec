@@ -7,6 +7,9 @@ defmodule Spec.Mixfile do
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     description: description(),
+     docs: docs(),
+     package: package(),
      deps: deps()]
   end
 
@@ -28,6 +31,26 @@ defmodule Spec.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [{:ex_doc, ">= 0.0.0", only: :dev}]
+  end
+
+  def description do
+    """
+    Data specification conformance and generation for Elixir
+    """
+  end
+
+  defp package do
+    [files: ["lib", "mix.exs", "README*"],
+     maintainers: ["Victor Borja"],
+     licenses: ["Apache 2.0"],
+     links: %{"GitHub" => "https://github.com/vic/spec"}]
+  end
+
+  defp docs do
+    [
+      source_url: "https://github.com/vic/spec",
+      extras: ["README.md"]
+    ]
   end
 end
