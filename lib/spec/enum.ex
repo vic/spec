@@ -30,7 +30,7 @@ defmodule Spec.Enum do
   end
 
   def items(enum, conformers) do
-    Stream.zip([enum, conformers])
+    Stream.zip(enum, conformers)
     |> Stream.with_index
     |> Enum.flat_map_reduce(nil, &item_conform/2)
     |> case do
