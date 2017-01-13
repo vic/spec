@@ -228,7 +228,7 @@ defmodule Spec.Enum do
   defp key_conformer(quoted) do
     quoted
     |> Macro.postwalk(fn
-      x when is_atom(x) ->
+      x when is_atom(x) or is_binary(x) or is_number(x) ->
         quote(do: Spec.Enum.has_key?(unquote(x))) |> Spec.Quoted.conformer()
       {x, _, y} when x in [:and, :or] ->
         quote(do: Spec.Enum.has_key?({unquote(x), unquote_splicing(y)})) |> Spec.Quoted.conformer()

@@ -6,6 +6,10 @@ defmodule Spec.ConformTest do
 
   describe "conform" do
 
+    test "match anything with placeholder" do
+      assert {:ok, "hello"} = conform(_, "hello")
+    end
+
     test "match with is_binary predicate" do
       assert {:ok, "hello"} = conform(is_binary(), "hello")
     end

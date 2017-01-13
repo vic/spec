@@ -20,11 +20,18 @@ defmodule Spec.Quoted do
     quoted_expr(quoted)
   end
 
-  defp quoted_expr(var = {x, _, y}) when is_atom(x) and is_atom(y), do: var
-
   defp quoted_expr({a, b}) do
     quoted_expr({:{}, [], [a, b]})
   end
+
+  defp quoted_expr(quoted = {:_, _, x}) when is_atom(x) do
+    expr = quote do
+      fn x -> {:ok, x} end.()
+    end
+    quoted_conformer(expr, quoted)
+  end
+
+  defp quoted_expr(var = {x, _, y}) when is_atom(x) and is_atom(y), do: var
 
   defp quoted_expr(quoted = {:%{}, _, keyword}) do
     keyword = for {k, v} <- keyword, do: {conformer(k), conformer(v)}

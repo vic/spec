@@ -29,9 +29,19 @@ defmodule Spec do
     end
   end
 
+  defmacro conform!(spec, value) do
+    quote do
+      unquote(__MODULE__).conform(unquote(spec), unquote(value))
+      |> case do
+        {:ok, conformed} -> conformed
+        {:error, mismatch = %Spec.Mismatch{}} -> raise mismatch
+      end
+    end
+  end
+
   defmacro valid?(spec, value) do
     quote do
-      conform(unquote(spec), unquote(value))
+      unquote(__MODULE__).conform(unquote(spec), unquote(value))
       |> Spec.Conform.ok?
     end
   end
