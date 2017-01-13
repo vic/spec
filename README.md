@@ -1,4 +1,4 @@
-# Spec 
+# Spec <a href="https://travis-ci.org/vic/spec"><img src="https://travis-ci.org/vic/spec.svg"></a>
 
 Spec is an Elixir data validation library inspired after [clojure.spec].
 
