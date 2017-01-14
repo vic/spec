@@ -419,7 +419,7 @@ more arguments.
 
 For example, you could define an spec to conform maps like:
 
-```
+```elixir
 defmodule MapSpec do
 
   defspec map_of(key_spec, val_spec, options \\ []), 
