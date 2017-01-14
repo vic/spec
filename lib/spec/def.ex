@@ -1,4 +1,4 @@
-defmodule Spec.Define do
+defmodule Spec.Def do
 
   @spec defspec(Macro.t) :: Macro.t
   defmacro defspec({name, _, [quoted_expr]}) do
@@ -21,7 +21,7 @@ defmodule Spec.Define do
 
       @spec unquote(name)(any) :: boolean
       def unquote(:"#{name}?")(value) do
-        unquote(name)(value) |> Spec.Conform.ok?
+        unquote(name)(value) |> Spec.Kernel.ok?
       end
 
       @spec unquote(name)(any) :: any

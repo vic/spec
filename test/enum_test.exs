@@ -1,6 +1,5 @@
 defmodule Spec.EnumTest do
   use ExUnit.Case
-  doctest Spec.Enum
 
   use Spec
 

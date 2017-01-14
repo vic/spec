@@ -1,6 +1,5 @@
 defmodule Spec.MismatchTest do
   use ExUnit.Case
-  doctest Spec.Enum
 
   use Spec
   alias Spec.Mismatch

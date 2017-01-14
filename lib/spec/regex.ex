@@ -40,7 +40,7 @@ defmodule Spec.Regex do
     opts = {:%{}, [], Enum.into(opts, [])}
     conf = Spec.Quoted.conformer(expr)
     quoted_conformer(value, quote do:
-      Spec.Enum.repeat(unquote(conf), unquote(opts)))
+      Spec.Enumerable.repeat(unquote(conf), unquote(opts)))
   end
 
   defp quoted_conformer(value, expr) do
@@ -49,4 +49,5 @@ defmodule Spec.Regex do
       Spec.Quoted.pipe(unquote(value), unquote(conf))
     end
   end
+
 end

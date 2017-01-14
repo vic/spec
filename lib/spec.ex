@@ -1,11 +1,13 @@
 defmodule Spec do
+
   @doc false
   defmacro __using__(_) do
     quote do
       import Spec
-      import Spec.Conform
+      import Spec.Def
+      import Spec.Key
       import Spec.Regex
-      import Spec.Define
+      import Spec.Kernel
     end
   end
 
@@ -47,7 +49,8 @@ defmodule Spec do
   defmacro valid?(spec, value) do
     quote do
       unquote(__MODULE__).conform(unquote(spec), unquote(value))
-      |> Spec.Conform.ok?
+      |> Spec.Kernel.ok?
     end
   end
+
 end

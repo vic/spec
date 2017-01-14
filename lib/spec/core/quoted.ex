@@ -36,7 +36,7 @@ defmodule Spec.Quoted do
   defp quoted_expr(quoted = {:%{}, _, keyword}) do
     keyword = for {k, v} <- keyword, do: {conformer(k), conformer(v)}
     expr = quote do
-      Spec.Enum.keyword(unquote(keyword), %{})
+      Spec.Enumerable.keyword(unquote(keyword), %{})
     end
     quoted_conformer(expr, quoted)
   end
@@ -45,13 +45,13 @@ defmodule Spec.Quoted do
     if Keyword.keyword?(quoted) do
       keyword = for {k, v} <- quoted, do: {conformer(k), conformer(v)}
       expr = quote do
-        Spec.Enum.keyword(unquote(keyword), [])
+        Spec.Enumerable.keyword(unquote(keyword), [])
       end
       quoted_conformer(expr, quoted)
     else
       args = Enum.map(quoted, &conformer/1)
       expr = quote do
-        Spec.Enum.list(unquote(args))
+        Spec.Enumerable.list(unquote(args))
       end
       quoted_conformer(expr, quoted)
     end
@@ -60,7 +60,7 @@ defmodule Spec.Quoted do
   defp quoted_expr(quoted = {:{}, _, args}) do
     args = Enum.map(args, &conformer/1)
     expr = quote do
-      Spec.Enum.tuple(unquote(args))
+      Spec.Enumerable.tuple(unquote(args))
     end
     quoted_conformer(expr, quoted)
   end

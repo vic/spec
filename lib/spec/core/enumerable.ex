@@ -1,4 +1,5 @@
-defmodule Spec.Enum do
+defmodule Spec.Enumerable do
+
   @moduledoc false # internal API
 
   alias Spec.Mismatch
@@ -286,7 +287,7 @@ defmodule Spec.Enum do
       |> Map.merge(Map.new(opts))
       |> Enum.into(%{}, fn {k,v} -> {k, Enum.map(v, &key_conformer/1)} end)
     quoted = quote do
-      Spec.Enum.keys(unquote(required), unquote(optional))
+      Spec.Enumerable.keys(unquote(required), unquote(optional))
     end
     Spec.Quoted.quoted_conformer(quoted, opts)
   end
@@ -295,9 +296,9 @@ defmodule Spec.Enum do
     quoted
     |> Macro.postwalk(fn
       x when is_atom(x) or is_binary(x) or is_number(x) ->
-        quote(do: Spec.Enum.has_key?(unquote(x))) |> Spec.Quoted.conformer()
+        quote(do: Spec.Enumerable.has_key?(unquote(x))) |> Spec.Quoted.conformer()
       {x, _, y} when x in [:and, :or] ->
-        quote(do: Spec.Enum.has_key?({unquote(x), unquote_splicing(y)})) |> Spec.Quoted.conformer()
+        quote(do: Spec.Enumerable.has_key?({unquote(x), unquote_splicing(y)})) |> Spec.Quoted.conformer()
       _ ->
         raise "only atoms and `and`/`or` operations are supported inside keys()"
     end)
