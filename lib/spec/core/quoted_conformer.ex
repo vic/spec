@@ -3,7 +3,6 @@ defmodule Spec.QuotedConformer do
 end
 
 defimpl Spec.Conformer, for: Spec.QuotedConformer do
-  def quoted(%{quoted: quoted}), do: quoted
   def conform(%{conformer: conformer, quoted: quoted}, value) do
     value
     |> conformer.()

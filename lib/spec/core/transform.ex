@@ -14,10 +14,6 @@ end
 
 
 defimpl Spec.Conformer, for: Spec.Transform do
-  def quoted(transform) do
-    Spec.Conformer.quoted(transform.conformer)
-  end
-
   def conform(transform, value) do
     Spec.Conformer.conform(transform.conformer, value)
   end

@@ -13,12 +13,7 @@ defmodule Spec do
 
   @spec conformer(Spec.Conformer.fun, Spec.Conformer.fun) :: Spec.Transformer.t
   def conformer(conformer, unformer \\ fn x -> x end) do
-    fn
-      {:conform, value} ->
-        conformer.(value) |> Spec.Quoted.result(value, inspect(conformer))
-      {:unform, value} ->
-        unformer.(value) |> Spec.Quoted.result(value, inspect(unformer))
-    end
+    %Spec.Transform{conformer: conformer, unformer: unformer}
   end
 
   @spec unform(Spec.Conformer.quoted, any) :: Spec.Conformer.result
