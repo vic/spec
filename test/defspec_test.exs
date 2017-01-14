@@ -46,6 +46,8 @@ defmodule Spec.DefineTest do
     defspec muu(x), do: {:muu, x.(22)}
     defspec dos(n), do: n * 2
 
+    defspec a_map_of(k, v), do: is_map() and many({k, v})
+
     test "an spec can be parameter for other" do
       assert {:bar, :foo} = conform!(bar(foo()), {:bar, :foo})
     end
@@ -60,6 +62,10 @@ defmodule Spec.DefineTest do
 
     test "an spec can be given a reference that expects an arg" do
       assert {:muu, 44} = conform!(muu(&dos/2), {:muu, 44})
+    end
+
+    test "a map of atoms to numbers" do
+      assert %{a: 1} = conform!(a_map_of(&is_atom/1, &is_number/1), %{a: 1})
     end
   end
 end
