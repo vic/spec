@@ -156,14 +156,8 @@ defmodule Spec.Quoted do
     end
   end
 
-  defp quoted_expr(x) when is_atom(x) or is_number(x) or is_binary(x) do
-    expr = quote do
-      case do
-        unquote(x) = v -> {:ok, v}
-        v -> Mismatch.error(subject: v, reason: "does not match", expr: unquote(x))
-      end
-    end
-    quoted_conformer(expr, x)
+  defp quoted_expr(expr) do
+    expr
   end
 
   def quoted_conformer(conformer = {_, _, _}, quoted) do
