@@ -20,18 +20,11 @@ defmodule Spec.Quoted do
     quoted_expr(quoted)
   end
 
-  defp quoted_expr({a, b}) do
-    quoted_expr({:{}, [], [a, b]})
-  end
-
   defp quoted_expr(quoted = {:_, _, x}) when is_atom(x) do
-    expr = quote do
-      fn x -> {:ok, x} end.()
+    quote do
+      fn x -> {:ok, x} end
     end
-    quoted_conformer(expr, quoted)
   end
-
-  defp quoted_expr(var = {x, _, y}) when is_atom(x) and is_atom(y), do: var
 
   defp quoted_expr(quoted = {:%{}, _, keyword}) do
     keyword = for {k, v} <- keyword, do: {conformer(k), conformer(v)}
@@ -57,6 +50,10 @@ defmodule Spec.Quoted do
     end
   end
 
+  defp quoted_expr({a, b}) do
+    quoted_expr({:{}, [], [a, b]})
+  end
+
   defp quoted_expr(quoted = {:{}, _, args}) do
     args = Enum.map(args, &conformer/1)
     expr = quote do
@@ -75,6 +72,8 @@ defmodule Spec.Quoted do
       Spec.Quoted.pipe(unquote(conformer))
       |> case do
            {:ok, conformed} -> {unquote(tag), conformed}
+           {:error, mismatch = %Mismatch{at: nil}} ->
+             {:error, %{mismatch | at: unquote(tag)}}
            error -> error
          end
     end
@@ -82,18 +81,7 @@ defmodule Spec.Quoted do
   end
 
   defp quoted_expr(quoted = {:fn, _, _}) do
-    quoted_conformer(quote(do: unquote(quoted).()), quoted)
-  end
-
-  defp quoted_expr(quoted = {:&, _, _}) do
-    quoted_conformer(quote(do: unquote(quoted).()), quoted)
-  end
-
-  defp quoted_expr(quoted = {:sigil_r, _, _}) do
-    expr = quote do
-      String.match?(unquote(quoted))
-    end
-    quoted_conformer(expr, quoted)
+    quoted_expr(quote do: unquote(quoted).())
   end
 
   defp quoted_expr(quoted = {:|>, _, [a, b]}) do
@@ -116,7 +104,7 @@ defmodule Spec.Quoted do
         |> case do
           {:ok, conformed} ->
             Spec.Quoted.pipe(conformed, unquote(b))
-          {:error, e} -> 
+          {:error, e} ->
             Mismatch.error(subject: value,
               reason: {"does not match all alternatives", [e]},
               expr: unquote(Macro.escape(quoted)))
@@ -149,10 +137,11 @@ defmodule Spec.Quoted do
   end
 
   defp quoted_expr(quoted = {a, _, args}) when is_atom(a) and is_list(args) do
-    if String.match?(to_string(a), ~r/^\w/) do
-      quoted_conformer(quoted, quoted)
-    else # operators
-      quoted
+    name = to_string(a)
+    cond do
+      String.match?(name, ~r/^sigil_/) -> quoted
+      String.match?(name, ~r/^\w/) -> quoted_conformer(quoted, quoted)
+      :else -> quoted
     end
   end
 

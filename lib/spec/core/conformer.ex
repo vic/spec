@@ -47,3 +47,15 @@ defimpl Spec.Conformer, for: Atom do
   alias Spec.Conformer.Spec.Literal
   def conform(lit, value), do: Literal.conform(lit, value)
 end
+
+defimpl Spec.Conformer, for: Regex do
+  def conform(regex, value) do
+    captures = Regex.named_captures(regex, value)
+    cond do
+      is_map(captures) and map_size(captures) > 0 -> {:ok, captures}
+      Regex.match?(regex, value) -> {:ok, value}
+      :else ->
+        Spec.Mismatch.error(subject: value, reason: "does not match regex", expr: regex)
+    end
+  end
+end
