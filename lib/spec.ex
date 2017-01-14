@@ -9,7 +9,7 @@ defmodule Spec do
     end
   end
 
-  @type conformer(Spec.Conformer.fun, Spec.Conformer.fun) :: Spec.Transformer.t
+  @spec conformer(Spec.Conformer.fun, Spec.Conformer.fun) :: Spec.Transformer.t
   def conformer(conformer, unformer \\ fn x -> x end) do
     fn
       {:conform, value} ->
