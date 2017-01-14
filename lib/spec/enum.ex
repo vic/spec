@@ -173,55 +173,41 @@ defmodule Spec.Enum do
     end
   end
 
+  def repeat(tuple, conformer, options = %{as_stream: true}) when is_tuple(tuple) do
+    repeat_stream(Tuple.to_list(tuple), conformer, options)
+  end
+
+  def repeat(stream, conformer, options = %{as_stream: true}) do
+    repeat_stream(stream, conformer, options)
+  end
+
   def repeat(tuple, conformer, opts) when is_tuple(tuple) do
-    repeat(tuple |> Tuple.to_list, conformer, opts)
-    |> case do
-         {:ok, conformed} when is_list(conformed) ->
-           {:ok, List.to_tuple(conformed)}
-         {:error, err = %{subject: list}} when is_list(list) ->
-           {:error, %{err | subject: List.to_tuple(list)}}
-         x -> x
-       end
+    repeat_intro(Tuple.to_list(tuple), conformer, opts, &List.to_tuple/1)
   end
 
-  def repeat(stream, conformer, %{as_stream: true, min: min, max: max, fail_fast: fail_fast}) do
-    stream
-    |> Stream.map(&Quoted.pipe(&1, conformer))
-    |> Stream.transform(fn -> 1 end, fn
-      _, nil -> {:halt, nil}
-      item, size ->
-        cond do
-          size > max and fail_fast == true ->
-            {:error, mismatch} = Mismatch.error(subject: stream,
-              reason: "does not have max length of #{max}")
-            raise mismatch
-          size > max ->
-            mismatch = Mismatch.error(subject: stream,
-            reason: "does not have max length of #{max}")
-            {[mismatch], nil}
-          :else ->
-            {[item], size + 1}
-        end
-    end, fn
-      size_plus_one when size_plus_one <= min and fail_fast == true ->
-          {:error, mismatch} = Mismatch.error(subject: stream,
-            reason: "does not have max length of #{max}")
-          raise mismatch
-      _ -> nil
-    end)
+  def repeat(map = %{__struct__: mod}, conformer, opts) do
+    repeat_intro(map, conformer, opts, fn kw -> struct(mod, kw) end)
   end
 
-  def repeat(list, _conformer, %{max: max, fail_fast: true}) when length(list) > max do
+  def repeat(map = %{}, conformer, opts) do
+    repeat_intro(map, conformer, opts, &Map.new/1)
+  end
+
+  def repeat(enum, conformer, opts) do
+    repeat_enum(enum, conformer, opts)
+  end
+
+  defp repeat_enum(list, _conformer, %{max: max, fail_fast: true}) when length(list) > max do
     Mismatch.error(subject: list,
       reason: "does not have max length of #{max}")
   end
 
-  def repeat(list, _conformer, %{min: min, fail_fast: true}) when length(list) < min do
+  defp repeat_enum(list, _conformer, %{min: min, fail_fast: true}) when length(list) < min do
     Mismatch.error(subject: list,
       reason: "does not have min length of #{min}")
   end
 
-  def repeat(list, conformer, %{min: min, max: max, fail_fast: fail_fast}) do
+  defp repeat_enum(list, conformer, %{min: min, max: max, fail_fast: fail_fast}) do
     list
     |> Stream.with_index(1)
     |> Enum.flat_map_reduce([], fn
@@ -246,6 +232,44 @@ defmodule Spec.Enum do
             reason: {"items do not conform", Enum.reverse(failures)})
       {_, failure} -> {:error, failure}
     end
+  end
+
+  defp repeat_stream(stream, conformer, %{min: min, max: max, fail_fast: fail_fast}) do
+    stream
+    |> Stream.map(&Quoted.pipe(&1, conformer))
+    |> Stream.transform(fn -> 1 end, fn
+      _, nil -> {:halt, nil}
+      item, size ->
+        cond do
+          size > max and fail_fast == true ->
+            {:error, mismatch} = Mismatch.error(subject: stream,
+            reason: "does not have max length of #{max}")
+            raise mismatch
+          size > max ->
+            mismatch = Mismatch.error(subject: stream,
+            reason: "does not have max length of #{max}")
+            {[mismatch], nil}
+          :else ->
+            {[item], size + 1}
+        end
+    end, fn
+      size_plus_one when size_plus_one <= min and fail_fast == true ->
+        {:error, mismatch} = Mismatch.error(subject: stream,
+      reason: "does not have max length of #{max}")
+      raise mismatch
+      _ -> nil
+    end)
+  end
+
+  defp repeat_intro(enum, conformer, opts, intro) do
+    repeat_enum(enum, conformer, opts)
+    |> case do
+         {:ok, conformed} when is_list(conformed) ->
+           {:ok, intro.(conformed)}
+         {:error, err = %{subject: list}} when is_list(list) ->
+           {:error, %{err | subject: intro.(list)}}
+         x -> x
+       end
   end
 
   def keys_conform(map_or_kw, opts) do

@@ -67,6 +67,12 @@ defmodule Spec.RegexTest do
       x = {1, 2}
       assert {:ok, ^x} = conform(many(is_integer()), x)
     end
+
+    test "can operate on maps" do
+      x = %{"hola" => :mundo}
+      assert {:ok, ^x} = conform(many({is_binary(), is_atom()}), x)
+    end
+
   end
 
   describe "many(as_stream: true)" do
