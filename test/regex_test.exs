@@ -62,9 +62,14 @@ defmodule Spec.RegexTest do
       x = [1, 2]
       assert {:ok, ^x} = conform(many(is_integer()), x)
     end
+
+    test "can operate on tuples" do
+      x = {1, 2}
+      assert {:ok, ^x} = conform(many(is_integer()), x)
+    end
   end
 
-  describe "stream" do
+  describe "many(as_stream: true)" do
     test "returns a lazy conformed stream of conformed values" do
       x = [33, "hello", 22]
       assert {:ok, s} = conform(many(is_integer(), as_stream: true), x)
@@ -88,6 +93,12 @@ defmodule Spec.RegexTest do
       assert {:ok, s} = conform(many(is_integer(), max: 1, fail_fast: false, as_stream: true), x)
       assert [{:ok, _}, {:error, mismatch}] = Enum.to_list(s)
       assert mismatch.reason =~ ~r/max length of 1/
+    end
+
+    test "can operate on tuples" do
+      x = {1, 2}
+      assert {:ok, s} = conform(many(is_integer(), as_stream: true), x)
+      assert [{:ok, 1}, {:ok, 2}] = Enum.to_list(s)
     end
 
   end

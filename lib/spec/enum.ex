@@ -173,6 +173,17 @@ defmodule Spec.Enum do
     end
   end
 
+  def repeat(tuple, conformer, opts) when is_tuple(tuple) do
+    repeat(tuple |> Tuple.to_list, conformer, opts)
+    |> case do
+         {:ok, conformed} when is_list(conformed) ->
+           {:ok, List.to_tuple(conformed)}
+         {:error, err = %{subject: list}} when is_list(list) ->
+           {:error, %{err | subject: List.to_tuple(list)}}
+         x -> x
+       end
+  end
+
   def repeat(stream, conformer, %{as_stream: true, min: min, max: max, fail_fast: fail_fast}) do
     stream
     |> Stream.map(&Quoted.pipe(&1, conformer))
@@ -198,10 +209,6 @@ defmodule Spec.Enum do
           raise mismatch
       _ -> nil
     end)
-  end
-
-  def repeat(tuple, conformer, opts) when is_tuple(tuple) do
-    repeat(tuple |> Tuple.to_list, conformer, opts)
   end
 
   def repeat(list, _conformer, %{max: max, fail_fast: true}) when length(list) > max do
