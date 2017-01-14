@@ -29,4 +29,12 @@ defmodule Spec.DefineTest do
       assert_raise Spec.Mismatch, fn -> nerd!(%{iq: 2}) end
     end
   end
+
+  describe "defspecp" do
+    defspecp kw2 is_list() and many({is_atom(), _}, min: 2, max: 2)
+
+    test "can be called using conform" do
+      assert {:ok, [a: 1, b: 2]} = conform(kw2(), [a: 1, b: 2])
+    end
+  end
 end

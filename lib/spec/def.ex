@@ -15,8 +15,26 @@ defmodule Spec.Def do
   defp define(def, name, conformer, unformer) do
     conformer = Spec.Quoted.conformer(conformer)
     unformer = Spec.Quoted.conformer(unformer)
-    quote do
 
+    predicate = quote do
+      @spec unquote(name)(any) :: boolean
+      unquote(def)(unquote(:"#{name}?")(value)) do
+        unquote(name)(value) |> Spec.Kernel.ok?
+      end
+    end
+
+    bang = quote do
+      @spec unquote(name)(any) :: any
+      unquote(def)(unquote(:"#{name}!")(value)) do
+        unquote(name)(value)
+        |> case do
+             {:ok, conformed} -> conformed
+             {:error, mismatch = %Spec.Mismatch{}} -> raise mismatch
+           end
+      end
+    end
+
+    quote do
       @spec unquote(name)() :: Spec.Transformer.t
       unquote(def)(unquote(name)()) do
         %Spec.Transform{
@@ -30,19 +48,7 @@ defmodule Spec.Def do
         Spec.Transformer.conform(unquote(name)(), value)
       end
 
-      @spec unquote(name)(any) :: boolean
-      unquote(def)(unquote(:"#{name}?")(value)) do
-        unquote(name)(value) |> Spec.Kernel.ok?
-      end
-
-      @spec unquote(name)(any) :: any
-      unquote(def)(unquote(:"#{name}!")(value)) do
-        unquote(name)(value)
-        |> case do
-             {:ok, conformed} -> conformed
-             {:error, mismatch = %Spec.Mismatch{}} -> raise mismatch
-           end
-      end
+      unquote_splicing(if :def == def, do: [predicate, bang], else: [])
     end
   end
 
