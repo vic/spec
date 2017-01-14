@@ -39,11 +39,11 @@ defmodule Spec.DefineTest do
   end
 
   describe "first order specs" do
-    defspecp foo, do: :foo
-    defspecp bar(baz), do: {:bar, baz}
-    defspecp bat(baz), do: {:bat, baz.()}
-    defspecp moo(x), do: {:moo, dos(11)}
-    defspecp dos(n), do: n * 2
+    defspec foo, do: :foo
+    defspec bar(baz), do: {:bar, baz}
+    defspec bat(baz), do: {:bat, baz.()}
+    defspec moo(x), do: {:moo, x}
+    defspec dos(n), do: n * 2
 
     test "an spec can be parameter for other" do
       assert {:bar, :foo} = conform!(bar(foo()), {:bar, :foo})
@@ -54,7 +54,7 @@ defmodule Spec.DefineTest do
     end
 
     test "an spec can be given a reference that expects an arg" do
-      assert {:moo, 22} = conform!(moo(&dos/1), {:moo, 22})
+      assert {:moo, 22} = conform!(moo(dos(11)), {:moo, 22})
     end
   end
 end
