@@ -69,13 +69,17 @@ defmodule Spec.Quoted do
   defp quoted_expr(quoted = {:::, _, [tag, arg]}) do
     conformer = conformer(arg)
     expr = quote do
-      Spec.Quoted.pipe(unquote(conformer))
-      |> case do
-           {:ok, conformed} -> {unquote(tag), conformed}
-           {:error, mismatch = %Mismatch{at: nil}} ->
-             {:error, %{mismatch | at: unquote(tag)}}
-           error -> error
-         end
+      fn value ->
+        tag = unquote(tag)
+        value
+        |> Spec.Quoted.pipe(unquote(conformer))
+        |> case do
+            {:ok, conformed} -> {tag, conformed}
+            {:error, mismatch = %Mismatch{at: nil}} ->
+              {:error, %{mismatch | at: tag}}
+            error -> error
+          end
+      end.()
     end
     quoted_conformer(expr, quoted)
   end

@@ -43,6 +43,7 @@ defmodule Spec.DefineTest do
     defspec bar(baz), do: {:bar, baz}
     defspec bat(baz), do: {:bat, baz.()}
     defspec moo(x), do: {:moo, x}
+    defspec muu(x), do: {:muu, x.(22)}
     defspec dos(n), do: n * 2
 
     test "an spec can be parameter for other" do
@@ -53,8 +54,12 @@ defmodule Spec.DefineTest do
       assert {:bat, :foo} = conform!(bat(&foo/1), {:bat, :foo})
     end
 
-    test "an spec can be given a reference that expects an arg" do
+    test "an spec can be given an spec built with one arg" do
       assert {:moo, 22} = conform!(moo(dos(11)), {:moo, 22})
+    end
+
+    test "an spec can be given a reference that expects an arg" do
+      assert {:muu, 44} = conform!(muu(&dos/2), {:muu, 44})
     end
   end
 end
