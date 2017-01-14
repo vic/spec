@@ -440,7 +440,7 @@ directly to conform data.
 ## Things to do
 
 Yay, thanks for reading till this point, hope you have found
-Expat interesting, if you want to give back some love, it can come in
+Spec interesting, if you want to give back some love, it can come in
 may forms. Feedback and code are always appreciated, feel free to
 open a new issue if you come up with something.
 
