@@ -81,6 +81,10 @@ defmodule Spec.ConformTest do
       assert {:ok, "Hello"} = conform(~r/hell/i, "Hello")
     end
 
+    test "match string regex with named groups" do
+      assert {:ok, %{"foo" => "el"}} = conform(~r/h(?<foo>el)l/i, "Hello")
+    end
+
     test "match ok?" do
       assert {:ok, {:ok, 12}} = conform(ok?(), {:ok, 12})
     end
