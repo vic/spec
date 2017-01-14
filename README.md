@@ -377,7 +377,7 @@ and having a easy way to be combined.
 defmodule LovePOEM do 
   use Spec
   
-  defspec lovers {is_binary(), is_binary()}
+  defspec lovers, do: {is_binary(), is_binary()}
   
   def send_love({from, to}) do
     Spec.conform!(lovers(), {from, to})
