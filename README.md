@@ -18,6 +18,20 @@ structure, is of a given type or that it satisfies certain predicates.
 You can validate your function arguments or return values (it's all done
 at *run-time*) look bellow for an example `LovePOEM`.
 
+- [Intro](#purpose)
+ - [Purpose](#purpose)
+ - [Installation](#installation)
+- [Usage](#usage)
+ - [Predicates](#predicates)
+ - [Conformers](#conformers)
+ - [Data structure specifications](#data-structure-specifications)
+ - [Alternating specs](#alternating-specs)
+ - [Key specs](#key-specs)
+ - [Regex repetition operators](#regex-repetition-operators)
+ - [Defspec](#define-specs)
+ - [Parametrized Specs](#parametrized-specs)
+- [Things to do](#things-to-do)
+
 ## Purpose
 
 Spec's purpose is to to provide a library for creating composable data
