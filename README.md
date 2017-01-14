@@ -358,6 +358,15 @@ iex> conform!(many(is_function(), fail_fast: false), [1, 2])
   `2` does not satisfy predicate `is_function()`
 ```
 
+`many` can also take an `as_stream: true` option, when enabled
+it will conform to a new stream which in turn produces the result
+of conforming every item lazily.
+
+```elixir
+{:ok, stream} = conform(many(is_number(), as_stream: true), 0..2)
+[{:ok, 0}, {:ok, 1}, {:ok, 2}] = Enum.to_list(stream)
+```
+
 ### Define spec
 
 You can also define specs on a module, giving them a name

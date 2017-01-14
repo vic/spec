@@ -173,6 +173,33 @@ defmodule Spec.Enum do
     end
   end
 
+  def repeat(stream, conformer, %{as_stream: true, min: min, max: max, fail_fast: fail_fast}) do
+    stream
+    |> Stream.map(&Quoted.pipe(&1, conformer))
+    |> Stream.transform(fn -> 1 end, fn
+      _, nil -> {:halt, nil}
+      item, size ->
+        cond do
+          size > max and fail_fast == true ->
+            {:error, mismatch} = Mismatch.error(subject: stream,
+              reason: "does not have max length of #{max}")
+            raise mismatch
+          size > max ->
+            mismatch = Mismatch.error(subject: stream,
+            reason: "does not have max length of #{max}")
+            {[mismatch], nil}
+          :else ->
+            {[item], size + 1}
+        end
+    end, fn
+      size_plus_one when size_plus_one <= min and fail_fast == true ->
+          {:error, mismatch} = Mismatch.error(subject: stream,
+            reason: "does not have max length of #{max}")
+          raise mismatch
+      _ -> nil
+    end)
+  end
+
   def repeat(tuple, conformer, opts) when is_tuple(tuple) do
     repeat(tuple |> Tuple.to_list, conformer, opts)
   end

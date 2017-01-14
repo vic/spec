@@ -124,8 +124,8 @@ defmodule Spec.MismatchTest do
       """ |> rstrip
     end
 
-    test "on invalid zero_or_more match" do
-      assert {:error, mismatch} = conform(zero_or_more(is_integer()), ["a"])
+    test "on invalid zero_or_one match" do
+      assert {:error, mismatch} = conform(zero_or_one(is_integer()), ["a"])
       assert to_string(mismatch) == """
       `"a"` does not satisfy predicate `is_integer()`
       """ |> rstrip
