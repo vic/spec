@@ -6,11 +6,11 @@ Just like clojure.spec, this library does not implement a type system,
 and the data specifications created with it are not useful for checking
 at compile time. For that use Elixir builtin [@spec typespecs][typespecs]
 
-Specs cannot be used for pattern matching like in function heads, 
+Specs cannot be used for pattern matching in function heads, 
 as validating with Spec would involve calling some Elixir runtime functions
 which are not allowed inside a pattern match. If you are looking 
 for a way to create composable patterns take a look at [Expat][expat]
-which was actually born in to the same mother than Spec.
+which was actually born to the same mother than Spec.
 (that is to say I'm author of both :D)
 
 ## Purpose
@@ -90,7 +90,7 @@ Actually, Spec adapts boolean predicates and makes them conform to the
 erlang idiom of returning tagged tuples like
 `{:ok, conformed}` or `{:error, mismatch}`.
 
-So, predicates are the a particular case of data conformers in Spec.
+So, predicates are a particular case of data conformers in Spec.
 
 ### Conformers
 
@@ -154,8 +154,8 @@ iex> conform!([{is_atom(), _}], foo: 22)
 ```
 
 If you are wondering about maps, you can also use the map literal 
-syntax. For checking on map keys (which ones are required and on
-which combinations of keys look bellow for `Spec.keys`)
+syntax. (For checking on map key presence and which combinations
+of keys are valid, look bellow for `Spec.keys`)
 
 ```elixir
 iex> conform!(%{is_binary() => is_number()}, %{"hola" => 22})
@@ -203,10 +203,10 @@ For that, let's introduce the tagged specs.
 A tag can be cobined with any spec, and if the spec matches, a tagged tuple will
 be created for its conformed value, for example. 
 
-*note* tagged specs use `::` syntax familiar to Elixir [typespecs]
+*note:* tagged specs use `::` syntax familiar to Elixir [typespecs]
 
 ```elixir
-iex> conform!(hello :: is_binary(), "world")
+iex> conform!(:hello :: is_binary(), "world")
 {:hello, "world"}
 ```
 
@@ -217,14 +217,16 @@ conformer creates a tagged tuple wraping data with a name.
 This way you can set a tag on any spec alternation:
 
 ```elixir
+iex> a = :foo
+iex> b = :bar
 iex> conform((a :: is_atom()) or (b :: is_number()), 20)
-{:ok, {:b, 20}}
+{:ok, {:bar, 20}}
 ```
 
 And using tags inside a list spec creates handy keywords
 
 ```elixir
-iex> conform!([a :: is_atom(), b :: is_number()], [:michael, 23])
+iex> conform!([:a :: is_atom(), :b :: is_number()], [:michael, 23])
 [a: :michael, b: 23]
 ```
 
@@ -305,7 +307,7 @@ a keyword list, saving some keystrokes so you dont have to type `::`
 for each element spec.
 
 ```elixir
-iex> data = [1, "firulais"]
+iex> data = [3, "firulais"]
 iex> conform!(cat(age: is_integer(), name: is_binary()), data)
 [age: 3, name: "firulais"]
 ```
@@ -337,9 +339,9 @@ iex> conform!(one_or_more(is_binary()), data)
 ** (Spec.Mismatch) `1` does not satisfy predicate `is_binary()`
 ```
 
-`many` can take `min:` (default 0) and `max:` (default `nil`) options.
+`many` can take `min:` (defaults to `0`) and `max:` (defaults to `nil`) options.
 
-And the three of them can take a `fails_fast: false` option if you
+And the three of them can take a `fail_fast: false` option if you
 need to check exhaustively on all elements, note that it's true for
 default as Spec prefers to fail fast on potentially large streams.
 
@@ -401,6 +403,12 @@ For example, there are no atom namespaces in Elixir.
 Also many functions from clojure.spec wont ever be implemented,
 for example `map-of`, `col-of` can be
 implemented with previously described functionality.
+
+```elixir
+# conform a map with all atom keys and number values.
+# since maps are enumerable we can validate using `many` on its key-value pairs
+defspec map_of_str_to_num(is_map() and many({is_atom(), is_number()}))
+```
 
 ## TODO
 

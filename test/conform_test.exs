@@ -51,11 +51,13 @@ defmodule Spec.ConformTest do
     end
 
     test "match a tagged value" do
-      assert {:ok, {:teen, 19}} = conform(teen :: &(9 < &1 and &1 < 20), 19)
+      assert {:ok, {:teen, 19}} = conform(:teen :: &(9 < &1 and &1 < 20), 19)
     end
 
     test "match tagged or alternatives" do
-      assert {:ok, {:b, 20}} = conform((a :: is_atom()) or (b :: is_number()), 20)
+      a = :foo
+      b = :bar
+      assert {:ok, {:bar, 20}} = conform((a :: is_atom()) or (b :: is_number()), 20)
     end
 
     test "match a tuple conforming it into a list" do
@@ -70,7 +72,7 @@ defmodule Spec.ConformTest do
 
     test "match a list conforming into a map" do
       x = [:answer, 42]
-      assert {:ok, m} = conform([a :: is_atom(), b :: is_number()] |> Enum.into(%{}), x)
+      assert {:ok, m} = conform([:a :: is_atom(), :b :: is_number()] |> Enum.into(%{}), x)
       assert :answer = m.a
       assert 42 = m.b
     end

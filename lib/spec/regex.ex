@@ -8,13 +8,13 @@ defmodule Spec.Regex do
 
   defmacro cat(value, named_conforms) do
     tagged = for {name, expr} <- named_conforms,
-      do: {:::, @at_kernel, [{name, [], nil}, expr]}
+      do: {:::, @at_kernel, [name, expr]}
     quoted_conformer(value, tagged)
   end
 
   defmacro alt(value, named_conforms) do
     tagged = for {name, expr} <- named_conforms,
-      do: {:::, @at_kernel, [{name, [], nil}, expr]}
+      do: {:::, @at_kernel, [name, expr]}
     ored = Enum.reduce(Enum.reverse(tagged), fn a, b ->
       {:or, @at_kernel, [a, b]}
     end)

@@ -69,12 +69,14 @@ defmodule Spec.Quoted do
     quoted_conformer(quoted, quoted)
   end
 
-  defp quoted_expr(quoted = {:::, _, [{name, _, x}, arg]}) when is_atom(name) and is_atom(x) do
-    conformer = conformer({name, arg})
+  defp quoted_expr(quoted = {:::, _, [tag, arg]}) do
+    conformer = conformer(arg)
     expr = quote do
-      fn value ->
-        {unquote(name), value} |> Spec.Quoted.pipe(unquote(conformer))
-      end.()
+      Spec.Quoted.pipe(unquote(conformer))
+      |> case do
+           {:ok, conformed} -> {unquote(tag), conformed}
+           error -> error
+         end
     end
     quoted_conformer(expr, quoted)
   end
