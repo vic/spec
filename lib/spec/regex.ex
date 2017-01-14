@@ -35,12 +35,15 @@ defmodule Spec.Regex do
   end
 
   defp repeat_conformer(value, expr, opts) do
-    opts = Map.merge(%{min: 0, max: nil, fail_fast: true, as_stream: false},
-      Map.new(opts))
-    opts = {:%{}, [], Enum.into(opts, [])}
     conf = Spec.Quoted.conformer(expr)
-    quoted_conformer(value, quote do:
-      Spec.Enumerable.repeat(unquote(conf), unquote(opts)))
+    quoted = quote do
+      fn value ->
+        defaults = %{min: 0, max: nil, fail_fast: true, as_stream: false}
+        opts = Map.merge(defaults, Map.new(unquote(opts)))
+        Spec.Enumerable.repeat(value, unquote(conf), opts)
+      end
+    end
+    quoted_conformer(value, quoted)
   end
 
   defp quoted_conformer(value, expr) do

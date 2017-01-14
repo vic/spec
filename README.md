@@ -6,12 +6,17 @@ Just like clojure.spec, this library does not implement a type system,
 and the data specifications created with it are not useful for checking
 at compile time. For that use Elixir builtin [@spec typespecs][typespecs]
 
-Specs cannot be used for pattern matching in function heads, 
-as validating with Spec would involve calling some Elixir runtime functions
+Specs cannot be used for pattern matching nor in function head guards, 
+as validating with Spec could involve calling some Elixir runtime functions
 which are not allowed inside a pattern match. If you are looking 
-for a way to create composable patterns take a look at [Expat][expat]
-which was actually born to the same mother than Spec.
-(that is to say I'm author of both :D)
+for a way to create composable patterns take a look at [Expat][expat].
+You can for example, conform your data with Spec and then pattern match
+on the conformed value using [Expat][expat] to easy extract values from it.
+
+Having said that, you can use Spec to validate that your data has certain
+structure, is of a given type or that it satisfies certain predicates.
+You can validate your function arguments or return values (it's all done
+at *run-time*) look bellow for an example `LovePOEM`.
 
 ## Purpose
 
@@ -367,10 +372,10 @@ of conforming every item lazily.
 [{:ok, 0}, {:ok, 1}, {:ok, 2}] = Enum.to_list(stream)
 ```
 
-### Define spec
+### Define Specs
 
 You can also define specs on a module, giving them a name
-and having a easy way to be combined.
+and having a easy way to be called and composed.
 
 ```elixir
 # Remember, POEM stands for Plain Old Elixir Module
@@ -380,7 +385,7 @@ defmodule LovePOEM do
   defspec lovers, do: {is_binary(), is_binary()}
   
   def send_love({from, to}) do
-    Spec.conform!(lovers(), {from, to})
+    lovers!({foo, to}) # same as Spec.conform!(lovers(), {from, to})
   end
 end
 ```
@@ -401,29 +406,49 @@ lovers!({"elixir", "erlang"}) # => {"elixir", "erlang"}
 lovers!({22, 33}) # raises *Spec.Mismatch*
 ```
 
+For private specs you can use `defspecp`, but it will only generate
+the `lovers?` and `lovers!` private functions if you give to
+`defspecp` an option like: `include: [:pred, :bang]`
 
-### Difference form clojure.spec
 
-As stated initially, Spec is inspired by clojure.spec but tries only
-to adapt the things of it that make sense in Elixir land.
+### Parametrized Specs
 
-For example, there are no atom namespaces in Elixir.
+As we have already seen, specs are just functions, they take the data to
+validate as first argument, but nothing restrains them from expecting
+more arguments.
 
-Also many functions from clojure.spec wont ever be implemented,
-for example `map-of`, `col-of` can be
-implemented with previously described functionality.
+For example, you could define an spec to conform maps like:
 
-```elixir
-# conform a map with all atom keys and number values.
-# since maps are enumerable we can validate using `many` on its key-value pairs
-defspec map_of_str_to_num(is_map() and many({is_atom(), is_number()}))
+```
+defmodule MapSpec do
+
+  defspec map_of(key_spec, val_spec, options \\ []), 
+  do: is_map() and many({key_spec, val_spec}, options)
+  
+end
+
+
+# validate that foo is a map of atoms to numbers with size between 2 and three
+foo = %{a: 1, b: 2, c: 3}
+foo |> MapSpec.map_of!(&is_atom/1, &is_number/1, min: 2, max: 3)
 ```
 
-## TODO
+Notice that this time we are using `MapSpec.map_of!/4` which takes the data to
+validate as first argument, once you define your specs, you can use them
+directly to conform data.
 
-There are some things missing
+## Things to do
+
+Yay, thanks for reading till this point, hope you have found
+Expat interesting, if you want to give back some love, it can come in
+may forms. Feedback and code are always appreciated, feel free to
+open a new issue if you come up with something.
+
+Here's a short list you can help Spec to be more awesome, Thank you :heart:!
 
 - [x] Have lots of fun
+- [ ] Have *more* fun
+- [ ] Create an index for this readme.
 - [ ] Improve readme, talk about all other Spec functions like valid? and friends.
 - [ ] Talk about Unconforming data (the reverse of conforming)
 - [ ] Add more [tests]

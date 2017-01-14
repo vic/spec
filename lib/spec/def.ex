@@ -1,40 +1,47 @@
 defmodule Spec.Def do
 
   @spec defspec(Macro.t, Keyword.t) :: Macro.t
-  defmacro defspec(head, [do: conformer]) do
-    unformer = quote do: fn x -> x end
-    define(:def, head, conformer, unformer)
+  defmacro defspec(head, options) do
+    define(:def, head, options)
   end
 
   @spec defspec(Macro.t, Keyword.t) :: Macro.t
-  defmacro defspecp(head, [do: conformer]) do
-    unformer = quote do: fn x -> x end
-    define(:defp, head, conformer, unformer)
+  defmacro defspecp(head, options) do
+    define(:defp, head, options)
   end
 
-  defp define(def, head = {name, _, args}, conformer, unformer) do
+  defp define(def, head = {name, _, args}, options) do
+    conformer = options
+      |> Keyword.get_lazy(:do, fn -> raise "Expected `do` for spec." end)
+      |> Spec.Quoted.conformer
+
+    unformer = options
+      |> Keyword.get(:undo, quote do: fn x -> x end)
+      |> Spec.Quoted.conformer
+
+    include = options
+      |> Keyword.get_lazy(:include, fn ->
+        if :def == def, do: [:pred, :bang], else: []
+      end)
+
     args = args || []
-    conformer = Spec.Quoted.conformer(conformer)
-    unformer = Spec.Quoted.conformer(unformer)
-
-    value = Macro.var(:value, __MODULE__)
-    value_args = [value] ++ args
-    head_value = {name, [], value_args}
-
-    any_head = args |> Enum.map(fn _ -> {:any, [], nil} end)
-    any_args = value_args |> Enum.map(fn _ -> {:any, [], nil} end)
+    anys = Enum.map(args, fn _ -> {:any, [], __MODULE__} end)
+    vary = Enum.with_index(args) |> Enum.map(fn {_, i} -> {:"var#{i}", [], __MODULE__} end)
 
     predicate = quote do
-      @spec unquote(name)(unquote_splicing(any_args)) :: boolean
-      unquote(def)(unquote(:"#{name}?")(unquote_splicing(value_args))) do
-        unquote(name)(unquote_splicing(value_args)) |> Spec.Kernel.ok?
+      @spec unquote(name)(value :: any, unquote_splicing(anys)) :: boolean
+      unquote(def)(unquote(:"#{name}?")(value, unquote_splicing(vary))) do
+        value
+        |> unquote(name)(unquote_splicing(vary))
+        |> Spec.Kernel.ok?
       end
     end
 
     bang = quote do
-      @spec unquote(name)(unquote_splicing(any_args)) :: any
-      unquote(def)(unquote(:"#{name}!")(unquote_splicing(value_args))) do
-        unquote(name)(unquote_splicing(value_args))
+      @spec unquote(name)(value :: any, unquote_splicing(anys)) :: any
+      unquote(def)(unquote(:"#{name}!")(value, unquote_splicing(vary))) do
+        value
+        |> unquote(name)(unquote_splicing(vary))
         |> case do
              {:ok, conformed} -> conformed
              {:error, mismatch = %Spec.Mismatch{}} -> raise mismatch
@@ -42,8 +49,10 @@ defmodule Spec.Def do
       end
     end
 
+    versions = [pred: predicate, bang: bang] |> Keyword.take(include) |> Keyword.values
+
     quote do
-      @spec unquote(name)(unquote_splicing(any_head)) :: Spec.Transformer.t
+      @spec unquote(name)(unquote_splicing(anys)) :: Spec.Transformer.t
       unquote(def)(unquote(head)) do
         %Spec.Transform{
           conformer: unquote(conformer),
@@ -51,12 +60,12 @@ defmodule Spec.Def do
         }
       end
 
-      @spec unquote(name)(unquote_splicing(any_args)) :: Spec.Conformer.result
-      unquote(def)(unquote(name)(unquote_splicing(value_args))) do
-        Spec.Transformer.conform(unquote(name)(unquote_splicing(args)), unquote(value))
+      @spec unquote(name)(value :: any, unquote_splicing(anys)) :: Spec.Conformer.result
+      unquote(def)(unquote(name)(value, unquote_splicing(vary))) do
+        Spec.Transformer.conform(unquote(name)(unquote_splicing(vary)), value)
       end
 
-      unquote_splicing(if :def == def, do: [predicate, bang], else: [])
+      unquote_splicing(versions)
     end
   end
 
