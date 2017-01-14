@@ -7,7 +7,7 @@ defmodule Spec.DefineTest do
     def smart?(iq) when iq > 200, do: true
     def smart?(_), do: false
 
-    defspec nerd %{iq: smart?()}
+    defspec nerd, do: %{iq: smart?()}
 
     test "can be called using conform" do
       assert {:ok, %{iq: 201}} = conform(nerd(), %{iq: 201})
@@ -31,10 +31,19 @@ defmodule Spec.DefineTest do
   end
 
   describe "defspecp" do
-    defspecp kw2 is_list() and many({is_atom(), _}, min: 2, max: 2)
+    defspecp kw2, do: is_list() and many({is_atom(), _}, min: 2, max: 2)
 
     test "can be called using conform" do
       assert {:ok, [a: 1, b: 2]} = conform(kw2(), [a: 1, b: 2])
+    end
+  end
+
+  describe "first order specs" do
+    defspec foo, do: :foo
+    defspec bar(baz), do: {:bar, baz}
+
+    test "an spec can be parameter for other" do
+      assert {:bar, :foo} = conform!(bar(foo()), {:bar, :foo})
     end
   end
 end

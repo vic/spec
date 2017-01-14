@@ -19,7 +19,7 @@ defmodule Spec.Enumerable do
     case result do
       {:ok, conformed} -> {:ok, List.to_tuple(conformed)}
       {:error, mismatch = %Mismatch{}} ->
-        {:error, %Mismatch{ mismatch | subject: tuple}}
+        {:error, Mismatch.with_root(mismatch, fn _ -> tuple end)}
     end
   end
 
@@ -267,8 +267,8 @@ defmodule Spec.Enumerable do
     |> case do
          {:ok, conformed} when is_list(conformed) ->
            {:ok, intro.(conformed)}
-         {:error, err = %{subject: list}} when is_list(list) ->
-           {:error, %{err | subject: intro.(list)}}
+         {:error, mismatch = %Mismatch{subject: subject}} when is_list(subject)->
+           {:error, %{mismatch | subject: intro.(subject)}}
          x -> x
        end
   end

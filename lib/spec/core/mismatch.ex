@@ -18,6 +18,14 @@ defmodule Spec.Mismatch do
     to_string(mismatch)
   end
 
+  def with_root(mismatch = %__MODULE__{in: nil, subject: s}, new_subject) do
+    %{mismatch | subject: new_subject.(s)}
+  end
+
+  def with_root(mismatch = %__MODULE__{in: parent}, new_subject) do
+    %{mismatch | in: with_root(parent, new_subject)}
+  end
+
 end
 
 defimpl String.Chars, for: Spec.Mismatch do
