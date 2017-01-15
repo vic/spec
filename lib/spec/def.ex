@@ -31,7 +31,7 @@ defmodule Spec.Def do
             require Instrumented
             Instrumented.define_instrumented(@fspec,
               unquote_splicing([def, head, options]))
-            Module.delete_attribute(__MODULE__, :fn_spec)
+            Module.delete_attribute(__MODULE__, :fspec)
         end
       end
     end
@@ -53,8 +53,8 @@ defmodule Spec.Def do
         unquote(fn_spec).({unquote(unref), unquote(vars)})
       end
       quote do
-        Kernel.defp(unquote(unhead), unquote(options))
         Kernel.unquote(def)(unquote(ihead), [do: unquote(ibody)])
+        Kernel.defp(unquote(unhead), unquote(options))
       end
     end
 
