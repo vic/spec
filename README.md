@@ -585,7 +585,7 @@ defmodule RandomJane do
   use Spec.Def
   
   @doc "Returns a random integer between lower and higher"
-  @spec random_in_range(lower :: integer, higher :: integer) :: integer
+  @spec in_range(lower :: integer, higher :: integer) :: integer
   @fspec &RandSpec.rand_range!/1
   def in_range(a, b) do
     Range.new(a, b) |> Enum.random
