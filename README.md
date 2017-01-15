@@ -16,7 +16,7 @@ on the conformed value using [Expat][expat] to easy extract values from it.
 Having said that, you can use Spec to validate that your data has certain
 structure, is of a given type or that it satisfies certain predicates.
 You can validate your function arguments or return values (it's all done
-at *run-time*) look bellow for an example `LovePOEM`.
+at *run-time*) look bellow for an example [`RandomJane`](#instrumented-def).
 
 - [Intro](#purpose)
  - [Purpose](#purpose)
@@ -24,12 +24,18 @@ at *run-time*) look bellow for an example `LovePOEM`.
 - [Usage](#usage)
  - [Predicates](#predicates)
  - [Conformers](#conformers)
- - [Data structure specifications](#data-structure-specifications)
- - [Alternating specs](#alternating-specs)
- - [Key specs](#key-specs)
- - [Regex repetition operators](#regex-repetition-operators)
- - [Defspec](#define-specs)
- - [Parametrized Specs](#parametrized-specs)
+ - [Conforming data](#data-structure-specifications)
+  - [Data structure specifications](#data-structure-specifications)
+  - [Alternating specs](#alternating-specs)
+  - [Key specs](#key-specs)
+  - [Regex repetition operators](#regex-repetition-operators)
+ - [Defining reusable specs](#define-specs)
+  - [Defspec](#define-specs)
+  - [Parametrized Specs](#parametrized-specs)
+ - [Conforming functions](#function-specifications)
+  - [Function specifications](#function-specifications)
+  - [Define conformed functions](#define-conformed-functions)
+  - [Instrumented def](#instrumented-def)
 - [Things to do](#things-to-do)
 
 ## Purpose
@@ -452,6 +458,144 @@ Notice that this time we are using `MapSpec.map_of!/4` which takes the data to
 validate as first argument, once you define your specs, you can use them
 directly to conform data.
 
+### Function specifications
+
+Function specifications can be created by using `fspec/2` which takes several
+options. The only required one is `args: args_spec` that must be an spec to conform
+an array of arguments before applying the function. 
+
+```elixir
+data = {&Kernel.+/2, [3, 4]}
+{:ok, 7} = conform(fspec(args: [is_integer(), is_integer()]), data)
+```
+
+As you can see, the `fspec` data *must* be a tuple `{_function_, _arguments_}` and
+if all conforms are successful, it will conform to the value returned by the
+function. Otherwise the first `{:error, mismatch}` to ocurr will be returned.
+
+These are the options that `fspec` can take:
+
+* `args:` - an spec to conform a list of argument values
+* `ret:` - an spec to conform the function return value
+* `fn:` - an spec that takes a Keyword 
+                `[args: conformed_args, ret: conformed_ret]`
+          if present will be used to conform the relation
+          between arguments and its return value.
+* `apply:` - nil by default. When given the `:conformed_args` atom, 
+           the function will be applied the *conformed_args*
+           that is the result of conforming with `args:` spec,
+           instead of the original args.
+* `return:` - nil by default. When given the `:conformed_ret` atom,
+           the return value will be *conformed_ret*,
+           that is the result of conforming the original value
+           returned by the function with the `ret:` spec.
+           When given the `:conformed_fn` atom, the return value
+           will be the result of conforming with the `fn:` spec.
+
+The following example uses these options to specify a `rand_range`
+function whose return value must be between the `initial` and `final` numbers.
+
+```elixir
+defmodule RandSpec do
+
+  defspec rand_range, do:
+  fspec args: cat(a: is_integer(), b: is_integer()) and &( &1[:a] < &1[:b] ),
+        ret: is_integer(),
+        fn: &( &1[:args][:a] <= &1[:ret] and &1[:ret] < &1[:args][:b] )
+
+end
+```
+
+Defining the previous function spec let us conform any function with some
+combination of arguments and see if they comply with the `rand_range` spec.
+
+```elixir
+fun = fn a, b -> Range.new(a, b) |> Enum.random end
+{:ok, 12} = RandSpec.rand_range({fun, [10, 20]})
+```
+
+Remember that bang versions return a conformed value or raise a mismatch:
+
+```elixir
+fun = fn a, b -> Range.new(a, b) |> Enum.random end
+12 = RandSpec.rand_range!({fun, [10, 20]})
+```
+
+```elixir
+# should fail if second arg is lower than first
+RandSpec.rand_range!({fun, [10, 5]})
+** (Spec.Mismatch) `[a: 10, b: 5]` does not satisfy predicate `"#Function<9.33707904/1 in RandSpec.rand_range/0>"`
+```
+
+```elixir
+# fails for a function that misbehaves
+RandSpec.rand_range!({fn _, _ -> "boom" end, [10, 20]})
+** (Spec.Mismatch) `"boom"` does not satisfy predicate `is_integer()`
+```
+
+### Define conformed functions
+
+Once we know how to create function specifications, we can learn to use
+the `@fspec` annotation to automatically instrument functions, that is
+they will be conformed when called.
+
+`@fspec` *must* be a function reference to a previously defined spec.
+For example, we can use our `RandSpec.rand_range!/1`
+
+```elixir
+defmodule RandomJoe do
+  use Spec
+
+  @fspec &RandSpec.rand_range!/1
+  defconform foo(a, b) do
+    Range.new(a, b) |> Enum.random
+  end
+  
+  @fspec &RandSpec.rand_range/1
+  defconform bar(a, b) do
+    a + b
+  end
+end
+```
+
+*Important* we used the bang version when defining `foo/2` so that if any
+spec fails, the mismatch will be raised
+
+```elixir
+RandomJoe.foo(1, :a)
+** (Spec.Mismatch) `[1, :a]` does not match all alternatives `cat(a: is_integer(), b: is_integer()) and &(&1[:a] < &1[:b])`
+```
+
+Intead `bar` will return a mismatch if anything goes wrong (or {:ok, value} if all is fine)
+
+```elixir
+RandomJoe.bar(1, 3)
+{:error,
+ %Spec.Mismatch{at: nil,
+  expr: "#Function<5.33707904/1 in RandSpec.rand_range/0>", in: nil,
+  reason: "does not satisfy predicate", subject: [args: [a: 1, b: 3], ret: 4]}}
+```
+
+### Instrumented def
+
+You can automatically instrument your functions by explicitly using `Spec.Def`
+
+```
+defmodule RandomJane do
+  use Spec.Def
+  
+  @doc "Returns a random integer between lower and higher"
+  @spec random_in_range(lower :: integer, higher :: integer) :: integer
+  @fspec &RandSpec.rand_range!/1
+  def in_range(a, b) do
+    Range.new(a, b) |> Enum.random
+  end
+end
+```
+
+This way the changes in your source code are minimal. The recommended way is to
+create all your specs in a separate module and just reference them with `@fspec`.
+
 ## Things to do
 
 Yay, thanks for reading till this point, hope you have found
@@ -466,7 +610,7 @@ Here's a short list you can help Spec to be more awesome, Thank you :heart:!
 - [ ] API Docs
 - [ ] Improve readme, talk about all other Spec functions like valid? and friends.
 - [ ] Talk about unforming data (reverse of conforming)
-- [ ] Add more [tests]
+- [ ] Improve nested error reports
 - [ ] Implement `gen` and `exercise`.
       Search on hex.pm for current packages that generate data and we can use
 - [ ] Use credo

@@ -20,7 +20,7 @@ defmodule Spec.Quoted do
     quoted_expr(quoted)
   end
 
-  defp quoted_expr(quoted = {:_, _, x}) when is_atom(x) do
+  defp quoted_expr({:_, _, x}) when is_atom(x) do
     quote do
       fn x -> {:ok, x} end
     end

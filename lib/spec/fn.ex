@@ -16,14 +16,14 @@ defmodule Spec.Fn do
         with \
         {:ok, conformed_args} <- Quoted.pipe(args, opts[:args]),
                ret = apply(fun, case opts[:apply] do
-                                  :conformed -> conformed_args |> Enum.to_list
+                                  :conformed_args -> conformed_args
                                   _ -> args
                                 end),
              {:ok, conformed_ret} <- Quoted.pipe(ret, opts[:ret]),
              {:ok, conformed_fn} <- [args: conformed_args, ret: conformed_ret]
              |> Quoted.pipe(opts[:fn]) do
           {:ok, case opts[:return] do
-                  :conformed -> conformed_ret
+                  :conformed_ret -> conformed_ret
                   :conformed_fn -> conformed_fn
                   _ -> ret
                 end}

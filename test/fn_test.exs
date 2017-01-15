@@ -11,6 +11,16 @@ defmodule Spec.FnTest do
     fspec(
       args: many(is_integer(), min: 2, max: 2),
       ret: is_integer())
+
+    defspec rand_range do
+      fspec args: cat(initial: is_integer(), final: is_integer()) and
+      &( &1[:initial] < &1[:final] ),
+        ret: is_integer(),
+        fn: fn [args: [initial: a, final: c], ret: b] ->
+        a <= b && b >= c
+      end
+    end
+
   end
 
   describe "fspec" do
@@ -47,17 +57,17 @@ defmodule Spec.FnTest do
       assert miss.reason == "does not satisfy predicate"
     end
 
-    test "invokes with conformed arguments if given option apply: :conformed" do
+    test "invokes with conformed arguments if given option apply: :conformed_args" do
       assert {:ok, 8} = conform(fspec(
-            apply: :conformed,
+            apply: :conformed_args,
             args: [is_integer() |> fn x -> x * 2 end.(),
                    is_integer() |> fn x -> x * 3 end.()]
           ), {&Kernel.+/2, [1, 2]})
     end
 
-    test "returns conformed ret if given option return: :conformed" do
+    test "returns conformed ret if given option return: :conformed_ret" do
       assert {:ok, "3"} = conform(fspec(
-            return: :conformed,
+            return: :conformed_ret,
             args: many(is_integer()),
             ret: to_string()
           ), {&Kernel.+/2, [1, 2]})
