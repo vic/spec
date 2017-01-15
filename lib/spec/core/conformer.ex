@@ -53,7 +53,7 @@ defimpl Spec.Conformer, for: Regex do
     captures = Regex.named_captures(regex, value)
     cond do
       is_map(captures) and map_size(captures) > 0 -> {:ok, captures}
-      Regex.match?(regex, value) -> {:ok, value}
+      is_map(captures) -> {:ok, value}
       :else ->
         Spec.Mismatch.error(subject: value, reason: "does not match regex", expr: regex)
     end
