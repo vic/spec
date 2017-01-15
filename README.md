@@ -1,6 +1,6 @@
 # Spec <a href="https://travis-ci.org/vic/spec"><img src="https://travis-ci.org/vic/spec.svg"></a>
 
-Spec is an Elixir data validation library inspired after [clojure.spec].
+Spec is an Elixir data validation library inspired on [clojure.spec].
 
 Just like clojure.spec, this library does not implement a type system,
 and the data specifications created with it are not useful for checking
@@ -469,7 +469,7 @@ data = {&Kernel.+/2, [3, 4]}
 {:ok, 7} = conform(fspec(args: [is_integer(), is_integer()]), data)
 ```
 
-As you can see, the `fspec` data *must* be a tuple `{_function_, _arguments_}` and
+As you can see, the `fspec` data *must* be a tuple `{function, arguments}` and
 if all conforms are successful, it will conform to the value returned by the
 function. Otherwise the first `{:error, mismatch}` to ocurr will be returned.
 
@@ -580,7 +580,7 @@ RandomJoe.bar(1, 3)
 
 You can automatically instrument your functions by explicitly using `Spec.Def`
 
-```
+```elixir
 defmodule RandomJane do
   use Spec.Def
   
