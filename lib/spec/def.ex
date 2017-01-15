@@ -2,74 +2,61 @@ defmodule Spec.Def do
 
   defmacro __using__(_) do
     quote do
-      import Spec.Def
+      import Kernel, except: [def: 2, defp: 2]
+      import Spec.Def, only: [def: 2, defp: 2]
     end
   end
 
-  @spec defspec(Macro.t, Keyword.t) :: Macro.t
-  defmacro defspec(head, options), do: define_spec(:def, head, options)
+  alias __MODULE__.Instrumented
 
-  @spec defspec(Macro.t, Keyword.t) :: Macro.t
-  defmacro defspecp(head, options), do: define_spec(:defp, head, options)
+  defmacro unquote(:def)(call, expr) do
+    Instrumented.define(:def, call, expr)
+  end
 
-  @doc false # private api
-  defp define_spec(def, head = {name, _, args}, options) do
-    conformer = options
-      |> Keyword.get_lazy(:do, fn -> raise "Expected `do` for spec." end)
-      |> Spec.Quoted.conformer
+  defmacro unquote(:defp)(call, expr) do
+    Instrumented.define(:defp, call, expr)
+  end
 
-    unformer = options
-      |> Keyword.get(:undo, quote do: fn x -> x end)
-      |> Spec.Quoted.conformer
 
-    include = options
-      |> Keyword.get_lazy(:include, fn ->
-        if :def == def, do: [:pred, :bang], else: []
+  defmodule Instrumented do
+    @moduledoc false # internal API
+    @at_kernel [context: Elixir, import: Kernel]
+
+    def define(def, head, options) do
+      quote do
+        case @fn_spec do
+          nil ->
+            Kernel.unquote(def)(unquote_splicing([head, options]))
+          ref when is_function(ref, 1) ->
+            require Instrumented
+            Instrumented.define_instrumented(@fn_spec,
+              unquote_splicing([def, head, options]))
+            Module.delete_attribute(__MODULE__, :fn_spec)
+        end
+      end
+    end
+
+    defmacro define_instrumented(fn_spec, def, {name, _, args}, options) do
+      {iargs, {_, vars}} = args |> Enum.flat_map_reduce({0, []}, fn
+        arg = {name, _, nil}, {idx, vars} when is_atom(name) ->
+        {[arg], {idx + 1, [arg | vars]}}
+        arg, {idx, vars} ->
+          var = Macro.var(:"arg#{idx}", __MODULE__)
+        {[quote do: unquote(var) = unquote(arg)], {idx + 1, [var | vars]}}
       end)
-
-    args = args || []
-    anys = Enum.map(args, fn _ -> {:any, [], __MODULE__} end)
-    vary = Enum.with_index(args) |> Enum.map(fn {_, i} -> {:"var#{i}", [], __MODULE__} end)
-
-    predicate = quote do
-      @spec unquote(name)(value :: any, unquote_splicing(anys)) :: boolean
-      unquote(def)(unquote(:"#{name}?")(value, unquote_splicing(vary))) do
-        value
-        |> unquote(name)(unquote_splicing(vary))
-        |> Spec.Kernel.ok?
+      vars = Enum.reverse(vars)
+      unname = :"__unconformed__#{name}"
+      unhead = {unname, [], args}
+      unref = {:&, [], [{:/, @at_kernel, [{unname, [], nil}, length(args)]}]}
+      ihead = {name, [], iargs}
+      ibody = quote do
+        unquote(fn_spec).({unquote(unref), unquote(vars)})
+      end
+      quote do
+        Kernel.defp(unquote(unhead), unquote(options))
+        Kernel.unquote(def)(unquote(ihead), [do: unquote(ibody)])
       end
     end
 
-    bang = quote do
-      @spec unquote(name)(value :: any, unquote_splicing(anys)) :: any
-      unquote(def)(unquote(:"#{name}!")(value, unquote_splicing(vary))) do
-        value
-        |> unquote(name)(unquote_splicing(vary))
-        |> case do
-             {:ok, conformed} -> conformed
-             {:error, mismatch = %Spec.Mismatch{}} -> raise mismatch
-           end
-      end
-    end
-
-    versions = [pred: predicate, bang: bang] |> Keyword.take(include) |> Keyword.values
-
-    quote do
-      @spec unquote(name)(unquote_splicing(anys)) :: Spec.Transformer.t
-      unquote(def)(unquote(head)) do
-        %Spec.Transform{
-          conformer: unquote(conformer),
-          unformer: unquote(unformer)
-        }
-      end
-
-      @spec unquote(name)(value :: any, unquote_splicing(anys)) :: Spec.Conformer.result
-      unquote(def)(unquote(name)(value, unquote_splicing(vary))) do
-        Spec.Transformer.conform(unquote(name)(unquote_splicing(vary)), value)
-      end
-
-      unquote_splicing(versions)
-    end
   end
-
 end

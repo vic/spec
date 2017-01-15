@@ -1,16 +1,17 @@
-defmodule Spec.FnTest.FnSum do
-  use Spec
-
-  defspec fn_sum, do:
-  fspec(
-    args: many(is_integer(), min: 2, max: 2),
-    ret: is_integer())
-
-end
-
 defmodule Spec.FnTest do
   use ExUnit.Case
   use Spec
+
+  alias __MODULE__.{Specs}
+
+  defmodule Specs do
+    use Spec
+
+    defspec sum, do:
+    fspec(
+      args: many(is_integer(), min: 2, max: 2),
+      ret: is_integer())
+  end
 
   describe "fspec" do
     test "can be used to conform a function arguments" do
@@ -73,16 +74,14 @@ defmodule Spec.FnTest do
   end
 
   describe "defconform" do
-    alias __MODULE__.FnSum
-
-    @fn_spec &FnSum.fn_sum/1
+    @fn_spec &Specs.sum/1
     defconform sum(a, b), do: a + b
 
-    @fn_spec &FnSum.fn_sum!/1
+    @fn_spec &Specs.sum!/1
     defconform sum!(a, b), do: a + b
 
     test "can use defspec to call a kernel method" do
-      assert 3 == FnSum.fn_sum!({&Kernel.+/2, [1, 2]})
+      assert 3 == Specs.sum!({&Kernel.+/2, [1, 2]})
     end
 
     test "when conformed with bang version returns value" do

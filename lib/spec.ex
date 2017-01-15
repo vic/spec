@@ -5,7 +5,7 @@ defmodule Spec do
     quote do
       import Spec
       import Spec.Fn
-      import Spec.Def
+      import Spec.Defspec
       import Spec.Key
       import Spec.Regex
       import Spec.Kernel
