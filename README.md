@@ -435,6 +435,7 @@ For example, you could define an spec to conform maps like:
 
 ```elixir
 defmodule MapSpec do
+  use Spec
 
   defspec map_of(key_spec, val_spec, options \\ []), 
   do: is_map() and many({key_spec, val_spec}, options)
@@ -462,9 +463,9 @@ Here's a short list you can help Spec to be more awesome, Thank you :heart:!
 
 - [x] Have lots of fun
 - [ ] Have *more* fun
-- [ ] Create an index for this readme.
+- [ ] API Docs
 - [ ] Improve readme, talk about all other Spec functions like valid? and friends.
-- [ ] Talk about Unconforming data (the reverse of conforming)
+- [ ] Talk about unforming data (reverse of conforming)
 - [ ] Add more [tests]
 - [ ] Implement `gen` and `exercise`.
       Search on hex.pm for current packages that generate data and we can use

@@ -1,16 +1,19 @@
 defmodule Spec.Def do
 
-  @spec defspec(Macro.t, Keyword.t) :: Macro.t
-  defmacro defspec(head, options) do
-    define(:def, head, options)
+  defmacro __using__(_) do
+    quote do
+      import Spec.Def
+    end
   end
 
   @spec defspec(Macro.t, Keyword.t) :: Macro.t
-  defmacro defspecp(head, options) do
-    define(:defp, head, options)
-  end
+  defmacro defspec(head, options), do: define_spec(:def, head, options)
 
-  defp define(def, head = {name, _, args}, options) do
+  @spec defspec(Macro.t, Keyword.t) :: Macro.t
+  defmacro defspecp(head, options), do: define_spec(:defp, head, options)
+
+  @doc false # private api
+  defp define_spec(def, head = {name, _, args}, options) do
     conformer = options
       |> Keyword.get_lazy(:do, fn -> raise "Expected `do` for spec." end)
       |> Spec.Quoted.conformer

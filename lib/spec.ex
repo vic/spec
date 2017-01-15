@@ -4,6 +4,7 @@ defmodule Spec do
   defmacro __using__(_) do
     quote do
       import Spec
+      import Spec.Fn
       import Spec.Def
       import Spec.Key
       import Spec.Regex

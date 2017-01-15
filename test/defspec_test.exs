@@ -1,4 +1,4 @@
-defmodule Spec.DefineTest do
+defmodule Spec.DefspecTest do
   use ExUnit.Case
 
   use Spec
