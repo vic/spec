@@ -24,12 +24,12 @@ defmodule Spec.Def do
 
     def define(def, head, options) do
       quote do
-        case @fn_spec do
+        case @fspec do
           nil ->
             Kernel.unquote(def)(unquote_splicing([head, options]))
           ref when is_function(ref, 1) ->
             require Instrumented
-            Instrumented.define_instrumented(@fn_spec,
+            Instrumented.define_instrumented(@fspec,
               unquote_splicing([def, head, options]))
             Module.delete_attribute(__MODULE__, :fn_spec)
         end

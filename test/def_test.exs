@@ -16,7 +16,7 @@ defmodule Spec.DefTest do
   defmodule Sum do
     use Spec.Def
 
-    @fn_spec &Specs.sum!/1
+    @fspec &Specs.sum!/1
     def sum(a, b), do: a + b
   end
 

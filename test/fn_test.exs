@@ -74,10 +74,10 @@ defmodule Spec.FnTest do
   end
 
   describe "defconform" do
-    @fn_spec &Specs.sum/1
+    @fspec &Specs.sum/1
     defconform sum(a, b), do: a + b
 
-    @fn_spec &Specs.sum!/1
+    @fspec &Specs.sum!/1
     defconform sum!(a, b), do: a + b
 
     test "can use defspec to call a kernel method" do
