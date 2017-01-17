@@ -17,7 +17,9 @@ Having said that, you can use Spec to validate that your data is of a
 given type, has certain structure or satisfies some predicates. Spec
 supports all Elixir data types, that is you can match on lists, maps, structs
 and tuples. Maps, Structs and Keyword lists can be checked for required keys.
-Specs can be _and_ed, _or_ed, sequenced or alternated using regex operators.
+Specs can be combined by passing some specs as argument to other specs,
+logically combined by using the `and`,`or` operators, and finally,
+sequenced or alternated using regex operators.
 You can validate your function arguments or return values (it's all done
 at *run-time*) look bellow for an example [`RandomJane`](#instrumented-def).
 And exercise an spec to get sample data that conforms to it.
