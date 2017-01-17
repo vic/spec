@@ -11,12 +11,16 @@ as validating with Spec could involve calling some Elixir runtime functions
 which are not allowed inside a pattern match. If you are looking 
 for a way to create composable patterns take a look at [Expat][expat].
 You can for example, conform your data with Spec and then pattern match
-on the conformed value using [Expat][expat] to easy extract values from it.
+on the conformed value using Expat to easily extract values from it.
 
-Having said that, you can use Spec to validate that your data has certain
-structure, is of a given type or that it satisfies certain predicates.
+Having said that, you can use Spec to validate that your data is of a
+given type, has certain structure or satisfies some predicates. Spec
+supports all Elixir data types, that is you can match on lists, maps, structs
+and tuples. Maps, Structs and Keyword lists can be checked for required keys.
+Specs can be _and_ed, _or_ed, sequenced or alternated using regex operators.
 You can validate your function arguments or return values (it's all done
 at *run-time*) look bellow for an example [`RandomJane`](#instrumented-def).
+And exercise an spec to get sample data that conforms to it.
 
 - [Intro](#purpose)
   - [Purpose](#purpose)
