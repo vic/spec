@@ -21,13 +21,6 @@ defmodule Spec.RegexTest do
   end
 
   describe "one_or_more" do
-    test "matches" do
-      x = [1, 2]
-      assert {:ok, ^x} = conform(one_or_more(is_integer()), x)
-    end
-  end
-
-  describe "one_or_more" do
     test "matches one" do
       x = [1]
       assert {:ok, ^x} = conform(one_or_more(is_integer()), x)
